@@ -1,0 +1,51 @@
+:root {
+  --bg: 248 248 249;
+  --panel: 255 255 255;
+  --text: 18 18 18;
+  --muted: 120 120 120;
+  --border: 230 230 230;
+
+  --accent: 17 17 17;
+  --accent-contrast: 255 255 255;
+  --accent-blue: 59 130 246;
+  --accent-blue-contrast: 255 255 255;
+  --accent-green: 34 197 94;
+  --accent-green-contrast: 255 255 255;
+  --accent-purple: 147 51 234;
+  --accent-purple-contrast: 255 255 255;
+  --accent-orange: 249 115 22;
+  --accent-orange-contrast: 255 255 255;
+  --accent-pink: 236 72 153;
+  --accent-pink-contrast: 255 255 255;
+  --accent-teal: 20 184 166;
+  --accent-teal-contrast: 255 255 255;
+  --accent-yellow: 234 179 8;
+  --accent-yellow-contrast: 10 10 10;
+  --danger: 220 38 38;
+  --success: 22 163 74;
+}
+
+.dark {
+  --bg: 10 10 10;
+  --panel: 20 20 20;
+  --text: 240 240 240;
+  --muted: 160 160 160;
+  --border: 40 40 40;
+
+  --accent: 255 255 255;
+  --accent-contrast: 10 10 10;
+  --accent-blue: 96 165 250;
+  --accent-blue-contrast: 10 10 10;
+  --accent-green: 74 222 128;
+  --accent-green-contrast: 10 10 10;
+  --accent-purple: 168 85 247;
+  --accent-purple-contrast: 255 255 255;
+  --accent-orange: 251 146 60;
+  --accent-orange-contrast: 10 10 10;
+  --accent-pink: 244 114 182;
+  --accent-pink-contrast: 10 10 10;
+  --accent-teal: 45 212 191;
+  --accent-teal-contrast: 10 10 10;
+  --accent-yellow: 250 204 21;
+  --accent-yellow-contrast: 10 10 10;
+}

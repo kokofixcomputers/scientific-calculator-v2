@@ -1,0 +1,1459 @@
+# Included files
+
+vite.config.ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+
+
+----------------------------------------
+
+src/App.tsx
+import { useState } from "react"
+
+import Navbar from "./components/layout/Navbar"
+import Sidebar from "./components/layout/Sidebar"
+
+import Calculator from "./tools/calculator/Calculator"
+import Rounding from "./tools/rounding/Rounding.tsx"
+import UnitConverter from "./tools/unit-converter/UnitConverter.tsx"
+import Fractions from "./tools/fractions/Fractions.tsx"
+
+import type { ToolId } from "./tools/types"
+
+export default function App() {
+  const [activeTool, setActiveTool] = useState<ToolId>("calculator")
+
+  return (
+    <div className="page-frame">
+      <Navbar />
+
+      <div className="pt-20 px-6">
+        <div className="container grid grid-cols-[260px_1fr] gap-6">
+          <Sidebar active={activeTool} onSelect={setActiveTool} />
+
+          {activeTool === "calculator" && <Calculator />}
+          {activeTool === "rounding" && <Rounding />}
+          {activeTool === "unit-converter" && <UnitConverter />}
+          {activeTool === "fractions" && <Fractions />}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+----------------------------------------
+
+src/main.tsx
+import React from "react"
+import ReactDOM from "react-dom/client"
+
+import "./styles/theme.css"
+import "./styles/semantic.css"
+
+import App from "./App"
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+)
+
+
+----------------------------------------
+
+src/App.css
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+
+----------------------------------------
+
+src/index.css
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+
+----------------------------------------
+
+src/tools/types.ts
+export type ToolId = "calculator" | "rounding" | "unit-converter" | "fractions"
+
+
+----------------------------------------
+
+src/tools/calculator/Key.tsx
+interface Props {
+  label: string
+  onClick: () => void
+  wide?: boolean
+}
+
+export default function Key({ label, onClick, wide }: Props) {
+  return (
+    <button
+      type="button"
+      tabIndex={-1}
+      className={`btn-secondary select-none ${
+        wide ? "col-span-2" : ""
+      }`}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
+    >
+      {label}
+    </button>
+  )
+}
+
+
+----------------------------------------
+
+src/tools/calculator/Keypad.tsx
+import type { Operator } from "./calc"
+import Key from "./Key"
+
+interface Props {
+  scientific: boolean
+  onDigit: (d: string) => void
+  onDecimal: () => void
+  onOperator: (o: Operator) => void
+  onEquals: () => void
+  onClear: () => void
+  onSqrt: () => void
+  onCbrt: () => void
+  onSquare: () => void
+  onPower: () => void
+}
+
+export default function Keypad(props: Props) {
+  return (
+    <div className="grid grid-cols-4 gap-3 select-none">
+      {/* Scientific row */}
+      {props.scientific && (
+        <>
+          <Key label="√" onClick={props.onSqrt} />
+          <Key label="∛" onClick={props.onCbrt} />
+          <Key label="x²" onClick={props.onSquare} />
+          <Key label="^" onClick={props.onPower} />
+        </>
+      )}
+
+      {/* Row 1 */}
+      <Key label="C" onClick={props.onClear} />
+      <Key label="÷" onClick={() => props.onOperator("/")} />
+      <Key label="×" onClick={() => props.onOperator("*")} />
+      <Key label="−" onClick={() => props.onOperator("-")} />
+
+      {/* Row 2 */}
+      <Key label="7" onClick={() => props.onDigit("7")} />
+      <Key label="8" onClick={() => props.onDigit("8")} />
+      <Key label="9" onClick={() => props.onDigit("9")} />
+      <Key label="+" onClick={() => props.onOperator("+")} />
+
+      {/* Row 3 */}
+      <Key label="4" onClick={() => props.onDigit("4")} />
+      <Key label="5" onClick={() => props.onDigit("5")} />
+      <Key label="6" onClick={() => props.onDigit("6")} />
+      <Key label="=" onClick={props.onEquals} />
+
+      {/* Row 4 */}
+      <Key label="1" onClick={() => props.onDigit("1")} />
+      <Key label="2" onClick={() => props.onDigit("2")} />
+      <Key label="3" onClick={() => props.onDigit("3")} />
+      <div /> {/* spacer */}
+
+      {/* Row 5 */}
+      <Key label="0" wide onClick={() => props.onDigit("0")} />
+      <Key label="." onClick={props.onDecimal} />
+      <div /> {/* spacer */}
+    </div>
+  )
+}
+
+
+----------------------------------------
+
+src/tools/calculator/calc.ts
+export type Operator = "+" | "-" | "*" | "/" | "^"
+
+export interface CalcState {
+  current: string
+  previous: string
+  operator: Operator | null
+}
+
+export function createInitialState(): CalcState {
+  return { current: "0", previous: "", operator: null }
+}
+
+export function inputDigit(state: CalcState, digit: string): CalcState {
+  return {
+    ...state,
+    current: state.current === "0" ? digit : state.current + digit,
+  }
+}
+
+export function inputDecimal(state: CalcState): CalcState {
+  if (state.current.includes(".")) return state
+  return { ...state, current: state.current + "." }
+}
+
+export function clear(): CalcState {
+  return createInitialState()
+}
+
+export function setOperator(state: CalcState, op: Operator): CalcState {
+  return {
+    previous: state.current + " " + op,
+    current: "0",
+    operator: op,
+  }
+}
+
+export function calculate(state: CalcState): CalcState {
+  if (!state.operator || !state.previous) return state
+
+  const a = parseFloat(state.previous)
+  const b = parseFloat(state.current)
+
+  let result = 0
+
+  switch (state.operator) {
+    case "+": result = a + b; break
+    case "-": result = a - b; break
+    case "*": result = a * b; break
+    case "/": result = b === 0 ? NaN : a / b; break
+    case "^": result = Math.pow(a, b); break
+  }
+
+  return {
+    current: String(result),
+    previous: "",
+    operator: null,
+  }
+}
+
+/* Scientific helpers */
+export function sqrt(value: string): string {
+  return String(Math.sqrt(Number(value)))
+}
+
+export function cbrt(value: string): string {
+  return String(Math.cbrt(Number(value)))
+}
+
+export function square(value: string): string {
+  return String(Math.pow(Number(value), 2))
+}
+
+
+----------------------------------------
+
+src/tools/calculator/Display.tsx
+interface Props {
+  previous: string
+  current: string
+}
+
+export default function Display({ previous, current }: Props) {
+  return (
+    <div className="glass rounded-xl p-6 text-right font-mono select-none">
+      <div className="text-sm text-[rgb(var(--muted))] min-h-[1.2em]">
+        {previous}
+      </div>
+      <div className="text-3xl">
+        {current}
+      </div>
+    </div>
+  )
+}
+
+
+----------------------------------------
+
+src/tools/calculator/Calculator.tsx
+import { useState } from "react"
+import Display from "./Display"
+import Keypad from "./Keypad"
+import {
+  createInitialState,
+  inputDigit,
+  inputDecimal,
+  setOperator,
+  calculate,
+  clear,
+  sqrt,
+  cbrt,
+  square,
+} from "./calc"
+
+export default function Calculator() {
+  const [state, setState] = useState(createInitialState())
+  const [scientific, setScientific] = useState(false)
+
+  return (
+    <div className="card space-y-6">
+      <div className="flex items-center justify-between">
+        <h2>Calculator</h2>
+        <button
+          className="btn-secondary"
+          onClick={() => setScientific(!scientific)}
+        >
+          {scientific ? "Basic" : "Scientific"}
+        </button>
+      </div>
+
+      <Display previous={state.previous} current={state.current} />
+
+      <Keypad
+        scientific={scientific}
+        onDigit={(d) => setState(s => inputDigit(s, d))}
+        onDecimal={() => setState(s => inputDecimal(s))}
+        onOperator={(o) => setState(s => setOperator(s, o))}
+        onPower={() => setState(s => setOperator(s, "^"))}
+        onEquals={() => setState(s => calculate(s))}
+        onClear={() => setState(clear())}
+        onSqrt={() => setState(s => ({ ...s, current: sqrt(s.current) }))}
+        onCbrt={() => setState(s => ({ ...s, current: cbrt(s.current) }))}
+        onSquare={() => setState(s => ({ ...s, current: square(s.current) }))}
+      />
+
+    </div>
+  )
+}
+
+
+----------------------------------------
+
+src/tools/rounding/Rounding.tsx
+import { useState } from "react"
+import {
+  roundToPlace,
+  roundToDecimals,
+  roundToMultiple,
+  type RoundingMode,
+} from "./calc"
+
+export default function Rounding() {
+  const [value, setValue] = useState("")
+  const [mode, setMode] = useState<RoundingMode>("place")
+  const [place, setPlace] = useState(1)
+  const [decimals, setDecimals] = useState(0)
+  const [multiple, setMultiple] = useState("")
+
+  const numberValue = Number(value)
+
+  let result: number | string = ""
+
+  if (value !== "" && !isNaN(numberValue)) {
+    if (mode === "place") {
+      result = roundToPlace(numberValue, place)
+    }
+    if (mode === "decimal") {
+      result = roundToDecimals(numberValue, decimals)
+    }
+    if (mode === "multiple") {
+      const m = Number(multiple)
+      result =
+        multiple === "" || isNaN(m)
+          ? ""
+          : roundToMultiple(numberValue, m)
+    }
+  }
+
+  return (
+    <div className="card space-y-6">
+      <h2>Rounding</h2>
+
+      {/* Input value */}
+      <div className="form-group">
+        <label className="form-label">Number</label>
+        <input
+          className="form-input"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Enter a number"
+        />
+      </div>
+
+      {/* Mode selector */}
+      <div className="form-group">
+        <label className="form-label">Rounding method</label>
+        <select
+          className="form-input"
+          value={mode}
+          onChange={(e) => setMode(e.target.value as RoundingMode)}
+        >
+          <option value="place">Round to place value</option>
+          <option value="decimal">Round to decimal places</option>
+          <option value="multiple">Round to nearest multiple</option>
+        </select>
+      </div>
+
+      {/* Place value */}
+      {mode === "place" && (
+        <div className="form-group">
+          <label className="form-label">Place</label>
+          <select
+            className="form-input"
+            value={place}
+            onChange={(e) => setPlace(Number(e.target.value))}
+          >
+            <option value={1}>Ones</option>
+            <option value={10}>Tens</option>
+            <option value={100}>Hundreds</option>
+            <option value={1000}>Thousands</option>
+            <option value={10000}>Ten thousands</option>
+            <option value={100000}>Hundred thousands</option>
+          </select>
+        </div>
+      )}
+
+      {/* Decimal places */}
+      {mode === "decimal" && (
+        <div className="form-group">
+          <label className="form-label">Decimal places</label>
+          <select
+            className="form-input"
+            value={decimals}
+            onChange={(e) => setDecimals(Number(e.target.value))}
+          >
+            <option value={0}>0 (whole number)</option>
+            <option value={1}>1 (tenths)</option>
+            <option value={2}>2 (hundredths)</option>
+            <option value={3}>3 (thousandths)</option>
+            <option value={4}>4 (ten-thousandths)</option>
+            <option value={5}>5</option>
+            <option value={6}>6</option>
+          </select>
+        </div>
+      )}
+
+      {/* Multiple */}
+      {mode === "multiple" && (
+        <div className="form-group">
+          <label className="form-label">Multiple</label>
+          <input
+            className="form-input"
+            value={multiple}
+            onChange={(e) => setMultiple(e.target.value)}
+            placeholder="e.g. 5, 0.25, 10"
+          />
+        </div>
+      )}
+
+      {/* Result */}
+      <div className="glass rounded-lg p-4 text-lg font-mono">
+        {result === "" || Number.isNaN(result)
+          ? "—"
+          : result}
+      </div>
+    </div>
+  )
+}
+
+
+----------------------------------------
+
+src/tools/rounding/calc.ts
+export type RoundingMode = "place" | "decimal" | "multiple"
+
+/**
+ * Round to place value (ones, tens, hundreds, etc.)
+ * place = 1 | 10 | 100 | 1000 ...
+ */
+export function roundToPlace(value: number, place: number): number {
+  if (!isFinite(value) || !isFinite(place) || place === 0) return NaN
+  return Math.round(value / place) * place
+}
+
+/**
+ * Round to number of decimal places
+ * decimals = 0..10
+ */
+export function roundToDecimals(value: number, decimals: number): number {
+  if (!isFinite(value) || !isFinite(decimals)) return NaN
+  const factor = Math.pow(10, decimals)
+  return Math.round(value * factor) / factor
+}
+
+/**
+ * Round to nearest multiple
+ * multiple can be any non-zero number
+ */
+export function roundToMultiple(value: number, multiple: number): number {
+  if (!isFinite(value) || !isFinite(multiple) || multiple === 0) return NaN
+  return Math.round(value / multiple) * multiple
+}
+
+
+----------------------------------------
+
+src/tools/fractions/calc.ts
+function gcd(a: number, b: number): number {
+  return b === 0 ? Math.abs(a) : gcd(b, a % b)
+}
+
+export function simplifyFraction(n: number, d: number): [number, number] {
+  if (d === 0) return [NaN, NaN]
+  const g = gcd(n, d)
+  return [n / g, d / g]
+}
+
+export function decimalToFraction(value: number): [number, number] {
+  if (!isFinite(value)) return [NaN, NaN]
+  const str = value.toString()
+  if (!str.includes(".")) return [value, 1]
+
+  const decimals = str.split(".")[1].length
+  const denom = Math.pow(10, decimals)
+  const num = Math.round(value * denom)
+
+  return simplifyFraction(num, denom)
+}
+
+export function toMixedNumber(n: number, d: number): [number, number, number] {
+  const whole = Math.floor(n / d)
+  const remainder = Math.abs(n % d)
+  return [whole, remainder, d]
+}
+
+export function toImproperFraction(
+  whole: number,
+  n: number,
+  d: number
+): [number, number] {
+  return [whole * d + n, d]
+}
+
+export function fractionToDecimal(n: number, d: number): number {
+  return d === 0 ? NaN : n / d
+}
+
+export function fractionToPercent(n: number, d: number): number {
+  return fractionToDecimal(n, d) * 100
+}
+
+
+----------------------------------------
+
+src/tools/fractions/Fractions.tsx
+import { useState } from "react"
+import {
+  decimalToFraction,
+  simplifyFraction,
+  toMixedNumber,
+  toImproperFraction,
+  fractionToDecimal,
+  fractionToPercent,
+} from "./calc"
+
+export default function Fractions() {
+  const [input, setInput] = useState("")
+  const [result, setResult] = useState<string>("—")
+
+  function parseFraction() {
+    if (input.includes("/")) {
+      const [n, d] = input.split("/").map(Number)
+      return [n, d]
+    }
+    return null
+  }
+
+  function handleDecimalToFraction() {
+    const v = Number(input)
+    if (isNaN(v)) return
+    const [n, d] = decimalToFraction(v)
+    setResult(`${n}/${d}`)
+  }
+
+  function handleSimplify() {
+    const frac = parseFraction()
+    if (!frac) return
+    const [n, d] = simplifyFraction(frac[0], frac[1])
+    setResult(`${n}/${d}`)
+  }
+
+  function handleMixed() {
+    const frac = parseFraction()
+    if (!frac) return
+    const [w, n, d] = toMixedNumber(frac[0], frac[1])
+    setResult(`${w} ${n}/${d}`)
+  }
+
+  function handleImproper() {
+    const parts = input.split(" ")
+    if (parts.length !== 2) return
+    const whole = Number(parts[0])
+    const [n, d] = parts[1].split("/").map(Number)
+    const [ni, di] = toImproperFraction(whole, n, d)
+    setResult(`${ni}/${di}`)
+  }
+
+  function handleDecimal() {
+    const frac = parseFraction()
+    if (!frac) return
+    setResult(String(fractionToDecimal(frac[0], frac[1])))
+  }
+
+  function handlePercent() {
+    const frac = parseFraction()
+    if (!frac) return
+    setResult(`${fractionToPercent(frac[0], frac[1])}%`)
+  }
+
+  return (
+    <div className="card space-y-6">
+      <h2>Fractions</h2>
+
+      <input
+        className="form-input"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="e.g. 0.75, 3/4, 2 1/2"
+      />
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <button className="btn-secondary" onClick={handleDecimalToFraction}>
+          Decimal → Fraction
+        </button>
+        <button className="btn-secondary" onClick={handleSimplify}>
+          Simplify
+        </button>
+        <button className="btn-secondary" onClick={handleMixed}>
+          To Mixed
+        </button>
+        <button className="btn-secondary" onClick={handleImproper}>
+          To Improper
+        </button>
+        <button className="btn-secondary" onClick={handlePercent}>
+          To Percent
+        </button>
+        <button className="btn-secondary" onClick={handleDecimal}>
+          To Decimal
+        </button>
+      </div>
+
+      <div className="glass rounded-lg p-4 font-mono text-lg">
+        {result}
+      </div>
+    </div>
+  )
+}
+
+
+----------------------------------------
+
+src/tools/unit-converter/calc.ts
+type UnitMap = Record<string, number>
+
+export const groups: Record<string, UnitMap> = {
+  length: {
+    m: 1,
+    cm: 100,
+    km: 0.001,
+    in: 39.3701,
+    ft: 3.28084,
+    yd: 1.09361,
+    mi: 0.000621371,
+  },
+  weight: {
+    kg: 1,
+    g: 1000,
+    lb: 2.20462,
+    oz: 35.274,
+  },
+  volume: {
+    l: 1,
+    ml: 1000,
+    gal: 0.264172,
+    qt: 1.05669,
+    pt: 2.11338,
+  },
+  area: {
+    sqm: 1,
+    sqkm: 0.000001,
+    sqft: 10.7639,
+    acre: 0.000247105,
+  },
+  speed: {
+    mps: 1,
+    kph: 3.6,
+    mph: 2.23694,
+  },
+  time: {
+    s: 1,
+    min: 1 / 60,
+    hr: 1 / 3600,
+    day: 1 / 86400,
+  },
+  digital: {
+    byte: 1,
+    kb: 1024,
+    mb: 1024 ** 2,
+    gb: 1024 ** 3,
+    tb: 1024 ** 4,
+  },
+  biblical: {
+    cubit: 1,
+    span: 2,
+    handbreadth: 6,
+  },
+}
+
+export function convert(
+  value: number,
+  from: string,
+  to: string,
+  group: string
+): number {
+  const map = groups[group]
+  return (value / map[from]) * map[to]
+}
+
+export function convertTemperature(
+  value: number,
+  from: string,
+  to: string
+): number {
+  if (from === to) return value
+
+  let c =
+    from === "C" ? value :
+    from === "F" ? (value - 32) * 5 / 9 :
+    value - 273.15
+
+  return to === "C"
+    ? c
+    : to === "F"
+    ? c * 9 / 5 + 32
+    : c + 273.15
+}
+
+
+----------------------------------------
+
+src/tools/unit-converter/UnitConverter.tsx
+import { useState } from "react"
+import { groups, convert, convertTemperature } from "./calc"
+
+export default function UnitConverter() {
+  const [group, setGroup] = useState("length")
+  const [value, setValue] = useState("")
+  const [from, setFrom] = useState("")
+  const [to, setTo] = useState("")
+
+  const numeric = Number(value)
+  let result: string = "—"
+
+  if (!isNaN(numeric) && from && to) {
+    result =
+      group === "temperature"
+        ? String(convertTemperature(numeric, from, to))
+        : String(convert(numeric, from, to, group))
+  }
+
+  const units =
+    group === "temperature"
+      ? ["C", "F", "K"]
+      : Object.keys(groups[group])
+
+  return (
+    <div className="card space-y-6">
+      <h2>Unit Converter</h2>
+
+      <select className="form-input" value={group} onChange={e => setGroup(e.target.value)}>
+        <option value="length">Length / Distance</option>
+        <option value="weight">Weight / Mass</option>
+        <option value="volume">Volume</option>
+        <option value="area">Area</option>
+        <option value="speed">Speed</option>
+        <option value="time">Time</option>
+        <option value="digital">Digital Storage</option>
+        <option value="biblical">Biblical Lengths</option>
+        <option value="temperature">Temperature</option>
+      </select>
+
+      <input
+        className="form-input"
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        placeholder="Value"
+      />
+
+      <div className="grid grid-cols-2 gap-4">
+        <select className="form-input" value={from} onChange={e => setFrom(e.target.value)}>
+          <option value="">From</option>
+          {units.map(u => <option key={u} value={u}>{u}</option>)}
+        </select>
+
+        <select className="form-input" value={to} onChange={e => setTo(e.target.value)}>
+          <option value="">To</option>
+          {units.map(u => <option key={u} value={u}>{u}</option>)}
+        </select>
+      </div>
+
+      <div className="glass rounded-lg p-4 font-mono text-lg">
+        {result}
+      </div>
+    </div>
+  )
+}
+
+
+----------------------------------------
+
+src/styles/theme.css
+:root {
+  --bg: 248 248 249;
+  --panel: 255 255 255;
+  --text: 18 18 18;
+  --muted: 120 120 120;
+  --border: 230 230 230;
+
+  --accent: 17 17 17;
+  --accent-contrast: 255 255 255;
+  --danger: 220 38 38;
+  --success: 22 163 74;
+}
+
+.dark {
+  --bg: 10 10 10;
+  --panel: 20 20 20;
+  --text: 240 240 240;
+  --muted: 160 160 160;
+  --border: 40 40 40;
+
+  --accent: 255 255 255;
+  --accent-contrast: 10 10 10;
+}
+
+
+----------------------------------------
+
+src/styles/semantic.css
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-[rgb(var(--bg))] text-[rgb(var(--text))] antialiased;
+    font-feature-settings: "ss01";
+  }
+
+  h1 {
+    @apply text-4xl md:text-6xl font-semibold tracking-tight;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  .page-frame {
+    @apply min-h-screen overflow-x-hidden;
+  }
+
+  .section {
+    @apply py-28 px-6;
+  }
+
+  .container {
+    @apply max-w-6xl mx-auto;
+  }
+
+  .glass {
+    @apply bg-[rgb(var(--panel)/0.75)]
+           backdrop-blur-[12px]
+           border border-[rgb(var(--border))]
+           shadow-[0_10px_30px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.3)];
+  }
+
+  .card {
+    @apply bg-[rgb(var(--panel)/0.75)]
+           backdrop-blur-[12px]
+           border border-[rgb(var(--border))]
+           shadow-[0_10px_30px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.3)]
+           rounded-xl p-8
+           transition-all duration-300
+           hover:shadow-[0_20px_40px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.4)]
+           hover:scale-[1.02];
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center
+           rounded-full px-6 py-3
+           text-sm font-medium
+           transition;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center
+           rounded-full px-6 py-3
+           text-sm font-medium
+           transition-all duration-200
+           bg-[rgb(var(--accent))]
+           text-[rgb(var(--accent-contrast))]
+           hover:opacity-90 hover:scale-105
+           cursor-pointer;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center
+           rounded-full px-6 py-3
+           text-sm font-medium
+           transition-all duration-200
+           border border-[rgb(var(--border))]
+           hover:bg-black/5 dark:hover:bg-white/10 hover:scale-105
+           cursor-pointer;
+  }
+
+  .badge-primary {
+    @apply inline-flex items-center rounded-full
+           px-3 py-1 text-xs font-medium
+           bg-[rgb(var(--accent))]
+           text-[rgb(var(--accent-contrast))];
+  }
+
+  .badge-secondary {
+    @apply inline-flex items-center rounded-full
+           px-3 py-1 text-xs font-medium
+           bg-black/5 dark:bg-white/10
+           text-[rgb(var(--text))];
+  }
+
+  .badge-success {
+    @apply inline-flex items-center rounded-full
+           px-3 py-1 text-xs font-medium
+           bg-[rgb(var(--success)/0.1)]
+           text-[rgb(var(--success))]
+           border border-[rgb(var(--success)/0.2)];
+  }
+
+  .badge-warning {
+    @apply inline-flex items-center rounded-full
+           px-3 py-1 text-xs font-medium
+           bg-[rgb(var(--warning)/0.1)]
+           text-[rgb(var(--warning))]
+           border border-[rgb(var(--warning)/0.2)];
+  }
+
+  .badge-danger {
+    @apply inline-flex items-center rounded-full
+           px-3 py-1 text-xs font-medium
+           bg-[rgb(var(--danger)/0.1)]
+           text-[rgb(var(--danger))]
+           border border-[rgb(var(--danger)/0.2)];
+  }
+
+  .alert {
+    @apply rounded-xl p-4 border;
+  }
+
+  .alert-success {
+    @apply rounded-xl p-4 border
+           border-[rgb(var(--success))]
+           text-[rgb(var(--success))];
+  }
+
+  .alert-danger {
+    @apply rounded-xl p-4 border
+           border-[rgb(var(--danger))]
+           text-[rgb(var(--danger))];
+  }
+
+  .alert-warning {
+    @apply rounded-xl p-4 border
+           border-[rgb(var(--warning))]
+           text-[rgb(var(--warning))];
+  }
+
+  .table {
+    @apply w-full rounded-xl overflow-hidden
+           bg-[rgb(var(--panel)/0.75)]
+           backdrop-blur-[12px]
+           border border-[rgb(var(--border))];
+  }
+
+  .table th {
+    @apply px-6 py-4 text-left font-semibold
+           bg-black/5 dark:bg-white/5
+           border-b border-[rgb(var(--border))];
+  }
+
+  .table td {
+    @apply px-6 py-4
+           border-b border-[rgb(var(--border))]
+           last:border-b-0;
+  }
+
+  .navbar-float {
+    @apply fixed top-0 left-0 right-0 z-50
+           bg-[rgb(var(--panel)/0.8)]
+           backdrop-blur-[16px]
+           border-b border-[rgb(var(--border))]
+           shadow-[0_8px_32px_rgba(0,0,0,0.1)]
+           transition-all duration-300;
+  }
+
+  .input {
+    @apply w-full rounded-lg px-4 py-3
+           bg-transparent
+           border border-[rgb(var(--border))]
+           focus:outline-none focus:ring-2 focus:ring-black/10
+           transition-all duration-200;
+  }
+
+  /* Color Variants */
+  .ui-green { @apply bg-green-500 text-white; }
+  .ui-blue { @apply bg-blue-500 text-white; }
+  .ui-red { @apply bg-red-500 text-white; }
+  .ui-yellow { @apply bg-yellow-500 text-black; }
+  .ui-purple { @apply bg-purple-500 text-white; }
+  .ui-pink { @apply bg-pink-500 text-white; }
+  .ui-indigo { @apply bg-indigo-500 text-white; }
+  .ui-gray { @apply bg-gray-500 text-white; }
+
+  .ui-green-outline { @apply border-2 border-green-500 text-green-600 bg-transparent hover:bg-green-50 dark:hover:bg-green-950; }
+  .ui-blue-outline { @apply border-2 border-blue-500 text-blue-600 bg-transparent hover:bg-blue-50 dark:hover:bg-blue-950; }
+  .ui-red-outline { @apply border-2 border-red-500 text-red-600 bg-transparent hover:bg-red-50 dark:hover:bg-red-950; }
+  .ui-yellow-outline { @apply border-2 border-yellow-500 text-yellow-600 bg-transparent hover:bg-yellow-50 dark:hover:bg-yellow-950; }
+  .ui-purple-outline { @apply border-2 border-purple-500 text-purple-600 bg-transparent hover:bg-purple-50 dark:hover:bg-purple-950; }
+  .ui-pink-outline { @apply border-2 border-pink-500 text-pink-600 bg-transparent hover:bg-pink-50 dark:hover:bg-pink-950; }
+  .ui-indigo-outline { @apply border-2 border-indigo-500 text-indigo-600 bg-transparent hover:bg-indigo-50 dark:hover:bg-indigo-950; }
+  .ui-gray-outline { @apply border-2 border-gray-500 text-gray-600 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-950; }
+
+  /* Enhanced Buttons with Color Variants */
+  .btn.ui-green { @apply bg-green-500 text-white hover:bg-green-600; }
+  .btn.ui-blue { @apply bg-blue-500 text-white hover:bg-blue-600; }
+  .btn.ui-red { @apply bg-red-500 text-white hover:bg-red-600; }
+  .btn.ui-yellow { @apply bg-yellow-500 text-black hover:bg-yellow-600; }
+  .btn.ui-purple { @apply bg-purple-500 text-white hover:bg-purple-600; }
+  .btn.ui-pink { @apply bg-pink-500 text-white hover:bg-pink-600; }
+  .btn.ui-indigo { @apply bg-indigo-500 text-white hover:bg-indigo-600; }
+  .btn.ui-gray { @apply bg-gray-500 text-white hover:bg-gray-600; }
+
+  /* Enhanced Badges with Color Variants */
+  .badge.ui-green { @apply bg-green-100 text-green-800 border border-green-200; }
+  .badge.ui-blue { @apply bg-blue-100 text-blue-800 border border-blue-200; }
+  .badge.ui-red { @apply bg-red-100 text-red-800 border border-red-200; }
+  .badge.ui-yellow { @apply bg-yellow-100 text-yellow-800 border border-yellow-200; }
+  .badge.ui-purple { @apply bg-purple-100 text-purple-800 border border-purple-200; }
+  .badge.ui-pink { @apply bg-pink-100 text-pink-800 border border-pink-200; }
+  .badge.ui-indigo { @apply bg-indigo-100 text-indigo-800 border border-indigo-200; }
+  .badge.ui-gray { @apply bg-gray-100 text-gray-800 border border-gray-200; }
+
+  /* Form Components */
+  .form-group {
+    @apply mb-6;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium mb-2 text-[rgb(var(--text))];
+  }
+
+  .form-input {
+    @apply w-full rounded-lg px-4 py-3
+           bg-[rgb(var(--panel)/0.3)]
+           border border-[rgb(var(--border))]
+           focus:outline-none focus:ring-2 focus:ring-[rgb(var(--accent))]
+           focus:border-[rgb(var(--accent))]
+           transition-all duration-200
+           placeholder:text-[rgb(var(--muted))];
+  }
+
+  .form-input.valid {
+    @apply border-green-500 focus:ring-green-500 focus:border-green-500;
+  }
+
+  .form-input.invalid {
+    @apply border-red-500 focus:ring-red-500 focus:border-red-500;
+  }
+
+  .form-input.warning {
+    @apply border-yellow-500 focus:ring-yellow-500 focus:border-yellow-500;
+  }
+
+  .form-error {
+    @apply text-red-500 text-sm mt-1;
+  }
+
+  .form-success {
+    @apply text-green-500 text-sm mt-1;
+  }
+
+  .form-warning {
+    @apply text-yellow-500 text-sm mt-1;
+  }
+
+  .form-help {
+    @apply text-[rgb(var(--muted))] text-sm mt-1;
+  }
+
+  /* Progress Bars */
+  .progress {
+    @apply w-full h-2 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden;
+  }
+
+  .progress-bar {
+    @apply h-full bg-[rgb(var(--accent))] transition-all duration-300 ease-out;
+  }
+
+  .progress-bar.ui-green { @apply bg-green-500; }
+  .progress-bar.ui-blue { @apply bg-blue-500; }
+  .progress-bar.ui-red { @apply bg-red-500; }
+  .progress-bar.ui-yellow { @apply bg-yellow-500; }
+  .progress-bar.ui-purple { @apply bg-purple-500; }
+  .progress-bar.ui-pink { @apply bg-pink-500; }
+  .progress-bar.ui-indigo { @apply bg-indigo-500; }
+  .progress-bar.ui-gray { @apply bg-gray-500; }
+
+  .progress-lg {
+    @apply h-4;
+  }
+
+  .progress-sm {
+    @apply h-1;
+  }
+}
+
+----------------------------------------
+
+src/styles/motion.ts
+export const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0 },
+}
+
+export const stagger = {
+  show: {
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+}
+
+export const slideDown = {
+  hidden: { opacity: 0, height: 0 },
+  show: { 
+    opacity: 1, 
+    height: "auto",
+    transition: {
+      duration: 0.3,
+      ease: "easeOut"
+    }
+  },
+  exit: {
+    opacity: 0,
+    height: 0,
+    transition: {
+      duration: 0.2,
+      ease: "easeIn"
+    }
+  }
+}
+
+
+----------------------------------------
+
+src/components/ui/ThemeToggle.tsx
+import { Moon, Sun } from "lucide-react"
+import { useTheme } from "../../hooks/useTheme"
+
+export default function ThemeToggle() {
+  const { dark, setDark } = useTheme()
+
+  return (
+    <button
+      onClick={() => setDark(!dark)}
+      className="btn-secondary gap-2"
+    >
+      {dark ? <Sun size={16} /> : <Moon size={16} />}
+    </button>
+  )
+}
+
+
+----------------------------------------
+
+src/components/layout/Navbar.tsx
+import ThemeToggle from "../ui/ThemeToggle.tsx"
+
+export default function Navbar() {
+  return (
+    <header className="navbar-float h-16 flex items-center">
+      <div className="container flex items-center justify-between">
+        <h2 className="text-lg font-semibold">All In One Calculator</h2>
+        <ThemeToggle />
+      </div>
+    </header>
+  )
+}
+
+
+----------------------------------------
+
+src/components/layout/Sidebar.tsx
+import {
+  Calculator,
+  ArrowLeftRight,
+  Ruler,
+} from "lucide-react"
+
+import type { ToolId } from "../../tools/types"
+
+const items: { id: ToolId; label: string; icon: any }[] = [
+  { id: "calculator", label: "Calculator", icon: Calculator },
+  { id: "rounding", label: "Number Rounding", icon: ArrowLeftRight },
+  { id: "unit-converter", label: "Unit Converter", icon: Ruler },
+  { id: "fractions", label: "Fractions", icon: Ruler },
+]
+
+interface Props {
+  active: ToolId
+  onSelect: (id: ToolId) => void
+}
+
+export default function Sidebar({ active, onSelect }: Props) {
+  return (
+    <aside className="glass rounded-xl p-4 space-y-2">
+      {items.map(({ id, label, icon: Icon }) => {
+        const isActive = active === id
+
+        return (
+          <button
+            key={id}
+            onClick={() => onSelect(id)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition
+              ${
+                isActive
+                  ? "bg-black/10 dark:bg-white/10"
+                  : "hover:bg-black/5 dark:hover:bg-white/10"
+              }`}
+          >
+            <Icon size={18} strokeWidth={1.5} />
+            <span className="text-sm font-medium">{label}</span>
+          </button>
+        )
+      })}
+    </aside>
+  )
+}
+
+
+----------------------------------------
+
+src/hooks/useTheme.ts
+import { useEffect, useState } from "react"
+
+export function useTheme() {
+  const [dark, setDark] = useState(false)
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark)
+  }, [dark])
+
+  return { dark, setDark }
+}
+
+
+----------------------------------------
+
+# Ignored files
+
+pnpm-lock.yaml
+tsconfig.node.json
+index.html
+.DS_Store
+all_files.txt
+tsconfig.app.json
+postcss.config.cjs
+README.md
+tailwind.config.cjs
+.gitignore
+package.json
+tsconfig.json
+boomisland.py
+eslint.config.js
+public/vite.svg
+.git/.DS_Store
+.git/config
+.git/HEAD
+.git/description
+.git/index
+.git/COMMIT_EDITMSG
+.git/FETCH_HEAD
+.git/objects/94/c0b2fc152a086447a04f62793957235d2475be
+.git/objects/34/3fc7a5d0230c141f2099e34f3b2123b578c796
+.git/objects/b5/334b183e3e9c0612c0defe29cabd3dd8878e64
+.git/objects/be/57c85affdf995b3a018ddfbee1080a323a4c1c
+.git/objects/a5/47bf36d8d11a4f89c59c144f24795749086dd1
+.git/objects/bd/263f37d5befd8e5414e75a63c0d7a636613c01
+.git/objects/e2/e0c9205d90ef435daffcbdd45007d56c2323ef
+.git/objects/fe/541185126ad0005ae42d74ac045e3a906fcd95
+.git/objects/c8/1fdae9f0c6116db8f1af7e6a2cfcff798ef8c7
+.git/objects/11/a2b26f5e9eb51c9b87a3fed6a280ef75713d11
+.git/objects/1f/fef600d959ec9e396d5a260bd3f5b927b2cef8
+.git/objects/8a/67f62f4ceebff3424e6e8cd4b3c25b17347546
+.git/objects/7e/c40fe712b610678ba6b44048098de24b32c47b
+.git/objects/7e/7106d56c4a0e21dc0d7f2215b22530ddc6bb1b
+.git/objects/91/763502f9adb5c857dd63d71be2f71350678ad8
+.git/objects/96/934806f4bf6a6b3fe177311003fa6668da1fa7
+.git/objects/3a/195d29a391df1f959aade3ec4500ee82875395
+.git/objects/5e/6b472f583e34a1cca751440d4f241495475723
+.git/objects/37/fd8597a965279c1c62292ebfae9b766c13d31b
+.git/objects/08/a3ac9e1e5c44ce374f782d7c4fa3aa70e4c1ff
+.git/objects/6c/2f1039a72314ff526935d841b651c0b14582bd
+.git/objects/6c/87de9bb3358469122cc991d5cf578927246184
+.git/objects/55/7b37c44d5cb352ff331f90e7fba0189cdfa65e
+.git/objects/a7/b389ee0d61c0e2bf478d0654132a6d11975660
+.git/objects/a9/b5a59ca647ca0102d2501b56cedd83ad7b6818
+.git/objects/d2/86dbb650e7226f86c8c63c56a2aff3f408ad4b
+.git/objects/d2/e77611fd3d959fee0487c41bd27b318be32b04
+.git/objects/db/ec4210640262c7724260f52a35df6c2e6f89cc
+.git/objects/b9/d355df2a5956b526c004531b7b0ffe412461e0
+.git/objects/cc/6e32ad70defe4f4421a7d6931a9b69791fec72
+.git/objects/e8/777c7baaef4ad559fea29ab65156f63317f168
+.git/objects/e7/b8dfb1b2a60bd50538bec9f876511b9cac21e3
+.git/objects/41/87ebd1793c6abb5d7df6bb7bc53277064d2eb3
+.git/objects/1d/93e538f9f3cef3fdabcf3d5f04189a717b9a4d
+.git/objects/76/6ac481704b98b3691080c606422f3ff6a12e67
+.git/objects/2b/a63fa27550b512d4be2827adb6dc22f82d7ac5
+.git/objects/8b/0f57b91aeb45c54467e29f983a0893dc83c4d9
+.git/objects/22/d7bbef24888aca16be5a73731897ad6609bf67
+.git/info/exclude
+.git/logs/HEAD
+.git/logs/refs/heads/main
+.git/logs/refs/remotes/origin/HEAD
+.git/logs/refs/remotes/origin/main
+.git/hooks/commit-msg.sample
+.git/hooks/pre-rebase.sample
+.git/hooks/sendemail-validate.sample
+.git/hooks/pre-commit.sample
+.git/hooks/applypatch-msg.sample
+.git/hooks/fsmonitor-watchman.sample
+.git/hooks/pre-receive.sample
+.git/hooks/prepare-commit-msg.sample
+.git/hooks/post-update.sample
+.git/hooks/pre-merge-commit.sample
+.git/hooks/pre-applypatch.sample
+.git/hooks/pre-push.sample
+.git/hooks/update.sample
+.git/hooks/push-to-checkout.sample
+.git/refs/heads/main
+.git/refs/remotes/origin/HEAD
+.git/refs/remotes/origin/main
+.vscode/settings.json
+src/.DS_Store
+src/assets/react.svg

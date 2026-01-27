@@ -1,4 +1,5 @@
 import { useState } from "react"
+import CopyButton from "../../components/CopyButton"
 import {
   roundToPlace,
   roundToDecimals,
@@ -116,9 +117,14 @@ export default function Rounding() {
 
       {/* Result */}
       <div className="glass rounded-lg p-4 text-lg font-mono">
-        {result === "" || Number.isNaN(result)
-          ? "—"
-          : result}
+        <div className="flex items-center justify-between">
+          <span className="flex-1">
+            {result === "" || Number.isNaN(result)
+              ? "—"
+              : result}
+          </span>
+          <CopyButton value={result === "" || Number.isNaN(result) ? "—" : String(result)} />
+        </div>
       </div>
     </div>
   )

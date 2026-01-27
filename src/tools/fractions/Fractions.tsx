@@ -1,4 +1,5 @@
 import { useState } from "react"
+import CopyButton from "../../components/CopyButton"
 import FractionDisplay from "../../components/FractionDisplay"
 import {
   decimalToFraction,
@@ -96,7 +97,12 @@ export default function Fractions() {
       </div>
 
       <div className="glass rounded-lg p-4 font-mono text-lg">
-        <FractionDisplay result={result} />
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <FractionDisplay result={result} />
+          </div>
+          <CopyButton value={result} />
+        </div>
       </div>
     </div>
   )

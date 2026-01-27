@@ -1,4 +1,5 @@
 import { useState } from "react"
+import CopyButton from "../../components/CopyButton"
 import { listFactors } from "./calc"
 
 export default function ListFactors() {
@@ -30,7 +31,10 @@ export default function ListFactors() {
       </button>
 
       <div className="glass rounded-lg p-4 font-mono text-lg">
-        {result}
+        <div className="flex items-center justify-between">
+          <span className="flex-1">{result}</span>
+          <CopyButton value={result} />
+        </div>
       </div>
     </div>
   )

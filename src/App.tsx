@@ -23,15 +23,7 @@ export default function App() {
 
   return (
     <div className="page-frame">
-      <Navbar />
-
-      {/* Mobile Menu Button */}
-      <button
-        className="md:hidden fixed top-4 left-4 z-50 btn-accent p-3"
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-      >
-        {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
+      <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
@@ -41,12 +33,12 @@ export default function App() {
         />
       )}
 
-      <div className="pt-20 px-6 md:px-6">
+      <div className="pt-16 px-4 md:px-6">
         <div className="container md:grid md:grid-cols-[260px_1fr] md:gap-6">
           {/* Sidebar */}
           <div className={`${
-            sidebarOpen ? "fixed left-0 top-20 bottom-0 w-64 z-50" : "hidden"
-          } md:block`}>
+            sidebarOpen ? "fixed left-0 top-16 bottom-0 w-64 z-50 p-4" : "hidden"
+          } md:block md:static md:p-0`}>
             <Sidebar active={activeTool} onSelect={(id) => {
               setActiveTool(id)
               setSidebarOpen(false)

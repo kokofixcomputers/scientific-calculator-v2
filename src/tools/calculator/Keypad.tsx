@@ -7,6 +7,8 @@ interface Props {
   onDecimal: () => void
   onFraction: () => void
   onParenthesis: (p: string) => void
+  onCustomRoot: () => void
+  onPi: () => void
   onOperator: (o: Operator) => void
   onEquals: () => void
   onClear: () => void
@@ -30,8 +32,8 @@ export default function Keypad(props: Props) {
           
           <Key label="x²" onClick={props.onSquare} className="btn-yellow" />
           <Key label="∛" onClick={props.onCbrt} className="btn-yellow" />
-          <div /> {/* spacer */}
-          <div /> {/* spacer */}
+          <Key label="n√" onClick={props.onCustomRoot} className="btn-yellow" />
+          <Key label="π" onClick={props.onPi} className="btn-yellow" />
         </>
       )}
 

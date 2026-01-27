@@ -8,6 +8,7 @@ import {
   List,
   Search,
   Clock,
+  CircleDivide,
 } from "lucide-react"
 
 import type { ToolId } from "../../tools/types"
@@ -16,7 +17,7 @@ const items: { id: ToolId; label: string; icon: any }[] = [
   { id: "calculator", label: "Calculator", icon: Calculator },
   { id: "rounding", label: "Number Rounding", icon: ArrowLeftRight },
   { id: "unit-converter", label: "Unit Converter", icon: Ruler },
-  { id: "fractions", label: "Fractions", icon: Ruler },
+  { id: "fractions", label: "Fractions", icon: CircleDivide },
   { id: "lcm", label: "LCM Calculator", icon: Hash },
   { id: "gcf", label: "GCF Calculator", icon: Divide },
   { id: "prime-factorization", label: "Prime Factorization", icon: GitBranch },

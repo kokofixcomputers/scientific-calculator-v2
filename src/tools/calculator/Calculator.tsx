@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import CopyButton from "../../components/CopyButton"
 import Display from "./Display"
 import Keypad from "./Keypad"
 import FractionDisplay from "../../components/FractionDisplay"
@@ -8,6 +9,8 @@ import {
   inputDecimal,
   inputFraction,
   inputParenthesis,
+  inputCustomRoot,
+  inputPi,
   setOperator,
   calculate,
   clear,
@@ -99,12 +102,15 @@ export default function Calculator() {
         <div className="text-sm text-[rgb(var(--muted))] mb-2 min-h-[1.25rem]">
           {state.previous || state.expression}
         </div>
-        <div className="text-2xl font-mono">
-          {state.showFraction && state.current.includes("/") ? (
-            <FractionDisplay result={state.current} />
-          ) : (
-            state.current
-          )}
+        <div className="text-2xl font-mono flex items-center justify-between">
+          <div className="flex-1">
+            {state.showFraction && state.current.includes("/") ? (
+              <FractionDisplay result={state.current} />
+            ) : (
+              state.current
+            )}
+          </div>
+          <CopyButton value={state.current} className="ml-2" />
         </div>
       </div>
 
@@ -114,6 +120,8 @@ export default function Calculator() {
         onDecimal={() => setState(s => inputDecimal(s))}
         onFraction={() => setState(s => inputFraction(s))}
         onParenthesis={(p) => setState(s => inputParenthesis(s, p))}
+        onCustomRoot={() => setState(s => inputCustomRoot(s))}
+        onPi={() => setState(s => inputPi(s))}
         onOperator={(o) => setState(s => setOperator(s, o))}
         onPower={() => setState(s => setOperator(s, "^"))}
         onEquals={() => setState(s => calculate(s))}

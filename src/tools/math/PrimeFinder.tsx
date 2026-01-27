@@ -1,4 +1,5 @@
 import { useState } from "react"
+import CopyButton from "../../components/CopyButton"
 import { findPrimes } from "./calc"
 
 export default function PrimeFinder() {
@@ -34,7 +35,10 @@ export default function PrimeFinder() {
       </button>
 
       <div className="glass rounded-lg p-4 font-mono text-lg max-h-40 overflow-y-auto">
-        {result}
+        <div className="flex items-start justify-between gap-2">
+          <span className="flex-1">{result}</span>
+          <CopyButton value={result} className="flex-shrink-0" />
+        </div>
       </div>
     </div>
   )

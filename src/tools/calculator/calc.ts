@@ -44,9 +44,21 @@ export function inputParenthesis(state: CalcState, paren: string): CalcState {
   return { ...state, current: state.current === "0" ? paren : state.current + paren }
 }
 
+export function inputCustomRoot(state: CalcState): CalcState {
+  return { ...state, current: state.current === "0" ? "√(" : state.current + "√(" }
+}
+
+export function inputPi(state: CalcState): CalcState {
+  const piValue = Math.PI.toString()
+  return { ...state, current: state.current === "0" ? piValue : state.current + "*" + piValue }
+}
+
 function evaluateExpression(expr: string): number {
   // Handle fractions in expression
   let processedExpr = expr.replace(/\b(\d+)\/(\d+)\b/g, '($1/$2)')
+  
+  // Handle custom roots: 3√(8) -> Math.pow(8, 1/3)
+  processedExpr = processedExpr.replace(/(\d+)√\(([^)]+)\)/g, 'Math.pow($2, 1/$1)')
   
   // Handle implicit multiplication: 3(4) -> 3*(4), (2)(3) -> (2)*(3), 2(3+4) -> 2*(3+4)
   processedExpr = processedExpr.replace(/(\d)\(/g, '$1*(')

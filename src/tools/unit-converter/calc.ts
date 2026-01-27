@@ -53,11 +53,11 @@ export const groups: Record<string, UnitMap> = {
   },
   digital: {
     byte: 1,
-    kb: 1 / 1024,
-    mb: 1 / (1024 ** 2),
-    gb: 1 / (1024 ** 3),
-    tb: 1 / (1024 ** 4),
-    pb: 1 / (1024 ** 5),
+    kb: 1 / 1000,
+    mb: 1 / (1000 ** 2),
+    gb: 1 / (1000 ** 3),
+    tb: 1 / (1000 ** 4),
+    pb: 1 / (1000 ** 5),
   },
   biblical: {
     cubit: 1,

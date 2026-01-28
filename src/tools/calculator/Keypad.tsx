@@ -25,8 +25,8 @@ export default function Keypad(props: Props) {
       {/* Scientific row */}
       {props.scientific && (
         <>
-          <Key label="(" onClick={() => props.onParenthesis("(")} />
-          <Key label=")" onClick={() => props.onParenthesis(")")} />
+          <Key label="(" onClick={() => props.onParenthesis("(")} className="btn-yellow rounded-full px-4 py-3"/>
+          <Key label=")" onClick={() => props.onParenthesis(")")} className="btn-yellow rounded-full px-4 py-3" />
           <Key label="√" onClick={props.onSqrt} className="btn-yellow rounded-full px-4 py-3" />
           <Key label="^" onClick={props.onPower} className="btn-yellow rounded-full px-4 py-3" />
           

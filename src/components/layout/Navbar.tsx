@@ -18,6 +18,7 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }: Props) {
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
           <h2 className="text-lg font-semibold">All In One Calculator</h2>
+          <center><h5 className="text-md font-semibold">Made with ❤️ by kokodev</h5></center>
         </div>
         <ThemeToggle />
       </div>

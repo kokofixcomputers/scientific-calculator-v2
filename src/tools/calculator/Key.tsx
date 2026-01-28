@@ -10,11 +10,9 @@ export default function Key({ label, onClick, wide, className }: Props) {
     <button
       type="button"
       tabIndex={-1}
-      className={`${
-        className || "btn-secondary"
-      } select-none ${
+      className={`btn-secondary rounded-full px-4 py-3 select-none ${
         wide ? "col-span-2" : ""
-      }`}
+      } ${className ?? ""}`}
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
     >

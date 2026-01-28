@@ -9,6 +9,7 @@ import {
   Search,
   Clock,
   CircleDivide,
+  RedoDot
 } from "lucide-react"
 
 import type { ToolId } from "../../tools/types"
@@ -24,6 +25,7 @@ const items: { id: ToolId; label: string; icon: any }[] = [
   { id: "list-factors", label: "List Factors", icon: List },
   { id: "prime-finder", label: "Prime Finder", icon: Search },
   { id: "time-calculator", label: "Time Calculator", icon: Clock },
+  { id: "one-step-equation", label: "One Step Equation", icon: RedoDot }
 ]
 
 interface Props {

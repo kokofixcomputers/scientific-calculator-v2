@@ -35,8 +35,11 @@ export default function GCF() {
   }
 
   return (
-    <div className="card space-y-6">
-      <h2>GCF Calculator</h2>
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>GCF Calculator</h2>
+        <span className="badge-secondary ui-teal">Multiple Numbers</span>
+      </div>
 
       <div className="space-y-3">
         {numbers.map((num, index) => (

@@ -15,8 +15,11 @@ export default function ListFactors() {
   }
 
   return (
-    <div className="card space-y-6">
-      <h2>List Factors</h2>
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>List Factors</h2>
+        <span className="badge-secondary ui-indigo">Complete List</span>
+      </div>
 
       <input
         className="form-input"

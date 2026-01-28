@@ -24,8 +24,11 @@ export default function UnitConverter() {
       : Object.keys(groups[group])
 
   return (
-    <div className="card space-y-6">
-      <h2>Unit Converter</h2>
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>Unit Converter</h2>
+        <span className="badge-secondary ui-purple">Multi-Category</span>
+      </div>
 
       <select className="form-input" value={group} onChange={e => setGroup(e.target.value)}>
         <option value="length">Length / Distance</option>

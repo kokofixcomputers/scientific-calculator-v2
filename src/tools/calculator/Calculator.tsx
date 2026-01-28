@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import CopyButton from "../../components/CopyButton"
 import Display from "./Display"
 import Keypad from "./Keypad"
@@ -24,6 +24,9 @@ import {
 export default function Calculator() {
   const [state, setState] = useState(createInitialState())
   const [scientific, setScientific] = useState(false)
+  const displayRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const copyButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -76,21 +79,50 @@ export default function Calculator() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  useEffect(() => {
+    if (displayRef.current && containerRef.current && copyButtonRef.current) {
+      const display = displayRef.current
+      const container = containerRef.current
+      const copyButton = copyButtonRef.current
+      const containerWidth = container.offsetWidth
+      const copyButtonWidth = copyButton.offsetWidth
+      const availableWidth = containerWidth - copyButtonWidth - 20 // 20px for margin
+      const maxFontSize = 56 // Maximum font size in pixels
+      const minFontSize = 24 // Minimum font size in pixels
+      
+      // Reset font size to default
+      display.style.fontSize = ""
+      
+      // Calculate the required font size
+      const textWidth = display.scrollWidth
+      const requiredFontSize = (availableWidth / textWidth) * maxFontSize
+      
+      // Apply the calculated font size with constraints
+      const newFontSize = Math.min(
+        Math.max(requiredFontSize, minFontSize),
+        maxFontSize
+      )
+      
+      display.style.fontSize = `${newFontSize}px`
+    }
+  }, [state.current])
+
   return (
-    <div className="card space-y-6">
+    <div className="card space-y-8 max-w-xl mx-auto">
       <div className="flex items-center justify-between">
-        <h2>Calculator</h2>
+        <div>
+          <h2>Calculator</h2>
+          <span className="badge-secondary ui-blue">Basic & Scientific</span>
+        </div>
         <div className="flex gap-2">
           <button
-            className={`btn-secondary text-xs ${
-              state.showFraction ? "bg-blue-100 dark:bg-blue-900" : ""
-            }`}
+            className={`btn-secondary text-xs ${state.showFraction ? "bg-black/5 dark:bg-white/10" : ""}`}
             onClick={() => setState(s => toggleFractionMode(s))}
           >
             a/b
           </button>
           <button
-            className="btn-secondary"
+            className={`btn-secondary ${scientific ? "bg-black/5 dark:bg-white/10" : ""}`}
             onClick={() => setScientific(!scientific)}
           >
             {scientific ? "Basic" : "Scientific"}
@@ -98,19 +130,19 @@ export default function Calculator() {
         </div>
       </div>
 
-      <div className="glass rounded-lg p-4">
-        <div className="text-sm text-[rgb(var(--muted))] mb-2 min-h-[1.25rem]">
+      <div className="glass rounded-2xl p-5 space-y-3">
+        <div className="text-sm text-[rgb(var(--muted))] min-h-[1.25rem]">
           {state.previous || state.expression}
         </div>
-        <div className="text-2xl font-mono flex items-center justify-between">
-          <div className="flex-1">
+        <div className="flex items-center justify-between" ref={containerRef}>
+          <div className="flex-1 overflow-hidden whitespace-nowrap" ref={displayRef} style={{ fontSize: "56px" }}>
             {state.showFraction && state.current.includes("/") ? (
               <FractionDisplay result={state.current} />
             ) : (
               state.current
             )}
           </div>
-          <CopyButton value={state.current} className="ml-2" />
+          <CopyButton value={state.current} className="ml-2" ref={copyButtonRef} />
         </div>
       </div>
 

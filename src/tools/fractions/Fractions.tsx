@@ -65,8 +65,11 @@ export default function Fractions() {
   }
 
   return (
-    <div className="card space-y-6">
-      <h2>Fractions</h2>
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>Fractions</h2>
+        <span className="badge-secondary ui-pink">Visual Display</span>
+      </div>
 
       <input
         className="form-input"

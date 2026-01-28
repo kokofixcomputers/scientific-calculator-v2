@@ -27,8 +27,11 @@ export default function TimeCalculator() {
   }
 
   return (
-    <div className="card space-y-6">
-      <h2>Time Calculator</h2>
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>Time Calculator</h2>
+        <span className="badge-secondary ui-gray">Duration & Difference</span>
+      </div>
 
       <div className="space-y-4">
         <div>

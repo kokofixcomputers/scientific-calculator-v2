@@ -15,8 +15,11 @@ export default function PrimeFactorization() {
   }
 
   return (
-    <div className="card space-y-6">
-      <h2>Prime Factorization</h2>
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>Prime Factorization</h2>
+        <span className="badge-secondary ui-red">Factor Analysis</span>
+      </div>
 
       <input
         className="form-input"

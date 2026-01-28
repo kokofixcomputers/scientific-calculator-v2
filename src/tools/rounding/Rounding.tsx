@@ -35,8 +35,11 @@ export default function Rounding() {
   }
 
   return (
-    <div className="card space-y-6">
-      <h2>Rounding</h2>
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>Rounding</h2>
+        <span className="badge-secondary ui-green">Precision Control</span>
+      </div>
 
       {/* Input value */}
       <div className="form-group">

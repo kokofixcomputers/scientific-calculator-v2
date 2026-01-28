@@ -14,6 +14,7 @@ export default defineConfig({
 
 src/App.tsx
 import { useState } from "react"
+import { Menu, X } from "lucide-react"
 
 import Navbar from "./components/layout/Navbar"
 import Sidebar from "./components/layout/Sidebar"
@@ -22,24 +23,56 @@ import Calculator from "./tools/calculator/Calculator"
 import Rounding from "./tools/rounding/Rounding.tsx"
 import UnitConverter from "./tools/unit-converter/UnitConverter.tsx"
 import Fractions from "./tools/fractions/Fractions.tsx"
+import LCM from "./tools/math/LCM.tsx"
+import GCF from "./tools/math/GCF.tsx"
+import PrimeFactorization from "./tools/math/PrimeFactorization.tsx"
+import ListFactors from "./tools/math/ListFactors.tsx"
+import PrimeFinder from "./tools/math/PrimeFinder.tsx"
+import TimeCalculator from "./tools/time/TimeCalculator.tsx"
 
 import type { ToolId } from "./tools/types"
 
 export default function App() {
   const [activeTool, setActiveTool] = useState<ToolId>("calculator")
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className="page-frame">
-      <Navbar />
+      <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      <div className="pt-20 px-6">
-        <div className="container grid grid-cols-[260px_1fr] gap-6">
-          <Sidebar active={activeTool} onSelect={setActiveTool} />
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-          {activeTool === "calculator" && <Calculator />}
-          {activeTool === "rounding" && <Rounding />}
-          {activeTool === "unit-converter" && <UnitConverter />}
-          {activeTool === "fractions" && <Fractions />}
+      <div className="pt-24 pb-16 px-4 md:px-6">
+        <div className="max-w-4xl mx-auto md:grid md:grid-cols-[220px_1fr]">
+          {/* Sidebar */}
+          <div className={`${
+            sidebarOpen ? "fixed left-0 top-16 bottom-0 w-64 z-50 p-4" : "hidden"
+          } md:block md:static md:p-0`}>
+            <Sidebar active={activeTool} onSelect={(id) => {
+              setActiveTool(id)
+              setSidebarOpen(false)
+            }} />
+          </div>
+
+          {/* Main Content */}
+          <div className="md:ml-0">
+            {activeTool === "calculator" && <Calculator />}
+            {activeTool === "rounding" && <Rounding />}
+            {activeTool === "unit-converter" && <UnitConverter />}
+            {activeTool === "fractions" && <Fractions />}
+            {activeTool === "lcm" && <LCM />}
+            {activeTool === "gcf" && <GCF />}
+            {activeTool === "prime-factorization" && <PrimeFactorization />}
+            {activeTool === "list-factors" && <ListFactors />}
+            {activeTool === "prime-finder" && <PrimeFinder />}
+            {activeTool === "time-calculator" && <TimeCalculator />}
+          </div>
         </div>
       </div>
     </div>
@@ -188,7 +221,7 @@ button:focus-visible {
 ----------------------------------------
 
 src/tools/types.ts
-export type ToolId = "calculator" | "rounding" | "unit-converter" | "fractions"
+export type ToolId = "calculator" | "rounding" | "unit-converter" | "fractions" | "lcm" | "gcf" | "prime-factorization" | "list-factors" | "prime-finder" | "time-calculator"
 
 
 ----------------------------------------
@@ -198,16 +231,17 @@ interface Props {
   label: string
   onClick: () => void
   wide?: boolean
+  className?: string
 }
 
-export default function Key({ label, onClick, wide }: Props) {
+export default function Key({ label, onClick, wide, className }: Props) {
   return (
     <button
       type="button"
       tabIndex={-1}
-      className={`btn-secondary select-none ${
+      className={`btn-secondary rounded-full px-4 py-3 select-none ${
         wide ? "col-span-2" : ""
-      }`}
+      } ${className ?? ""}`}
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
     >
@@ -227,9 +261,14 @@ interface Props {
   scientific: boolean
   onDigit: (d: string) => void
   onDecimal: () => void
+  onFraction: () => void
+  onParenthesis: (p: string) => void
+  onCustomRoot: () => void
+  onPi: () => void
   onOperator: (o: Operator) => void
   onEquals: () => void
   onClear: () => void
+  onBackspace: () => void
   onSqrt: () => void
   onCbrt: () => void
   onSquare: () => void
@@ -238,45 +277,50 @@ interface Props {
 
 export default function Keypad(props: Props) {
   return (
-    <div className="grid grid-cols-4 gap-3 select-none">
+    <div className="grid grid-cols-4 gap-3 select-none w-full md:w-auto">
       {/* Scientific row */}
       {props.scientific && (
         <>
-          <Key label="√" onClick={props.onSqrt} />
-          <Key label="∛" onClick={props.onCbrt} />
-          <Key label="x²" onClick={props.onSquare} />
-          <Key label="^" onClick={props.onPower} />
+          <Key label="(" onClick={() => props.onParenthesis("(")} />
+          <Key label=")" onClick={() => props.onParenthesis(")")} />
+          <Key label="√" onClick={props.onSqrt} className="btn-yellow rounded-full px-4 py-3" />
+          <Key label="^" onClick={props.onPower} className="btn-yellow rounded-full px-4 py-3" />
+          
+          <Key label="x²" onClick={props.onSquare} className="btn-yellow rounded-full px-4 py-3" />
+          <Key label="∛" onClick={props.onCbrt} className="btn-yellow rounded-full px-4 py-3" />
+          <Key label="n√" onClick={props.onCustomRoot} className="btn-yellow rounded-full px-4 py-3" />
+          <Key label="π" onClick={props.onPi} className="btn-yellow rounded-full px-4 py-3" />
         </>
       )}
 
       {/* Row 1 */}
-      <Key label="C" onClick={props.onClear} />
-      <Key label="÷" onClick={() => props.onOperator("/")} />
-      <Key label="×" onClick={() => props.onOperator("*")} />
-      <Key label="−" onClick={() => props.onOperator("-")} />
+      <Key label="C" onClick={props.onClear} className="btn-danger rounded-full px-4 py-3" />
+      <Key label="⌫" onClick={props.onBackspace} />
+      <Key label="÷" onClick={() => props.onOperator("/")} className="btn-orange rounded-full px-4 py-3" />
+      <Key label="×" onClick={() => props.onOperator("*")} className="btn-orange rounded-full px-4 py-3" />
 
       {/* Row 2 */}
       <Key label="7" onClick={() => props.onDigit("7")} />
       <Key label="8" onClick={() => props.onDigit("8")} />
       <Key label="9" onClick={() => props.onDigit("9")} />
-      <Key label="+" onClick={() => props.onOperator("+")} />
+      <Key label="−" onClick={() => props.onOperator("-")} className="btn-orange rounded-full px-4 py-3" />
 
       {/* Row 3 */}
       <Key label="4" onClick={() => props.onDigit("4")} />
       <Key label="5" onClick={() => props.onDigit("5")} />
       <Key label="6" onClick={() => props.onDigit("6")} />
-      <Key label="=" onClick={props.onEquals} />
+      <Key label="+" onClick={() => props.onOperator("+")} className="btn-orange rounded-full px-4 py-3" />
 
       {/* Row 4 */}
       <Key label="1" onClick={() => props.onDigit("1")} />
       <Key label="2" onClick={() => props.onDigit("2")} />
       <Key label="3" onClick={() => props.onDigit("3")} />
-      <div /> {/* spacer */}
+      <Key label="=" onClick={props.onEquals} className="btn-equals rounded-full px-4 py-3" />
 
       {/* Row 5 */}
       <Key label="0" wide onClick={() => props.onDigit("0")} />
       <Key label="." onClick={props.onDecimal} />
-      <div /> {/* spacer */}
+      <Key label="a/b" onClick={props.onFraction} className="btn-secondary text-xs rounded-full px-4 py-3" />
     </div>
   )
 }
@@ -288,13 +332,14 @@ src/tools/calculator/calc.ts
 export type Operator = "+" | "-" | "*" | "/" | "^"
 
 export interface CalcState {
+  expression: string
   current: string
   previous: string
-  operator: Operator | null
+  showFraction: boolean
 }
 
 export function createInitialState(): CalcState {
-  return { current: "0", previous: "", operator: null }
+  return { expression: "", current: "0", previous: "", showFraction: false }
 }
 
 export function inputDigit(state: CalcState, digit: string): CalcState {
@@ -309,39 +354,108 @@ export function inputDecimal(state: CalcState): CalcState {
   return { ...state, current: state.current + "." }
 }
 
+export function inputFraction(state: CalcState): CalcState {
+  if (state.current.includes("/")) return state
+  return { ...state, current: state.current + "/" }
+}
+
 export function clear(): CalcState {
   return createInitialState()
 }
 
 export function setOperator(state: CalcState, op: Operator): CalcState {
   return {
-    previous: state.current + " " + op,
+    ...state,
+    expression: state.expression + state.current + " " + op + " ",
     current: "0",
-    operator: op,
   }
 }
 
+export function inputParenthesis(state: CalcState, paren: string): CalcState {
+  return { ...state, current: state.current === "0" ? paren : state.current + paren }
+}
+
+export function inputCustomRoot(state: CalcState): CalcState {
+  return { ...state, current: state.current === "0" ? "√(" : state.current + "√(" }
+}
+
+export function inputPi(state: CalcState): CalcState {
+  const piValue = Math.PI.toString()
+  return { ...state, current: state.current === "0" ? piValue : state.current + "*" + piValue }
+}
+
+function evaluateExpression(expr: string): number {
+  // Handle fractions in expression
+  let processedExpr = expr.replace(/\b(\d+)\/(\d+)\b/g, '($1/$2)')
+  
+  // Handle custom roots: 3√(8) -> Math.pow(8, 1/3)
+  processedExpr = processedExpr.replace(/(\d+)√\(([^)]+)\)/g, 'Math.pow($2, 1/$1)')
+  
+  // Handle implicit multiplication: 3(4) -> 3*(4), (2)(3) -> (2)*(3), 2(3+4) -> 2*(3+4)
+  processedExpr = processedExpr.replace(/(\d)\(/g, '$1*(')
+  processedExpr = processedExpr.replace(/\)(\d)/g, ')*$1')
+  processedExpr = processedExpr.replace(/\)\(/g, ')*(')
+  
+  try {
+    // Use Function constructor for safe evaluation with order of operations
+    return Function('"use strict"; return (' + processedExpr.replace(/\^/g, '**') + ')')();
+  } catch {
+    return NaN
+  }
+}
+
+function decimalToFraction(decimal: number): string {
+  if (Number.isInteger(decimal)) return decimal.toString()
+  
+  const tolerance = 1.0E-6
+  let h1 = 1, h2 = 0, k1 = 0, k2 = 1
+  let b = decimal
+  
+  do {
+    const a = Math.floor(b)
+    let aux = h1
+    h1 = a * h1 + h2
+    h2 = aux
+    aux = k1
+    k1 = a * k1 + k2
+    k2 = aux
+    b = 1 / (b - a)
+  } while (Math.abs(decimal - h1 / k1) > decimal * tolerance)
+  
+  return `${h1}/${k1}`
+}
+
 export function calculate(state: CalcState): CalcState {
-  if (!state.operator || !state.previous) return state
-
-  const a = parseFloat(state.previous)
-  const b = parseFloat(state.current)
-
-  let result = 0
-
-  switch (state.operator) {
-    case "+": result = a + b; break
-    case "-": result = a - b; break
-    case "*": result = a * b; break
-    case "/": result = b === 0 ? NaN : a / b; break
-    case "^": result = Math.pow(a, b); break
+  // If there's an expression, use it + current
+  let fullExpression = ""
+  if (state.expression) {
+    fullExpression = state.expression + state.current
+  } else {
+    // If no expression but current contains operators/parentheses, use current as full expression
+    fullExpression = state.current
   }
+  
+  // Only calculate if we have something to evaluate
+  if (!fullExpression || fullExpression === "0") return state
 
+  const result = evaluateExpression(fullExpression)
+  
+  if (isNaN(result)) {
+    return { ...state, current: "Error", expression: "", previous: "" }
+  }
+  
+  const resultStr = state.showFraction ? decimalToFraction(result) : String(result)
+  
   return {
-    current: String(result),
-    previous: "",
-    operator: null,
+    expression: "",
+    current: resultStr,
+    previous: fullExpression + " =",
+    showFraction: state.showFraction,
   }
+}
+
+export function toggleFractionMode(state: CalcState): CalcState {
+  return { ...state, showFraction: !state.showFraction }
 }
 
 /* Scientific helpers */
@@ -355,6 +469,49 @@ export function cbrt(value: string): string {
 
 export function square(value: string): string {
   return String(Math.pow(Number(value), 2))
+}
+
+export function backspace(state: CalcState): CalcState {
+  // If current has content, remove last character
+  if (state.current.length > 1) {
+    return { ...state, current: state.current.slice(0, -1) }
+  }
+  
+  // If current is "0" or single character, check if we can pull from expression
+  if (state.expression) {
+    const trimmed = state.expression.trim()
+    
+    // Find the last number/operand in the expression
+    const parts = trimmed.split(' ')
+    if (parts.length >= 3) {
+      // Remove the last operand and operator, move operand to current
+      const lastOperand = parts[parts.length - 3]
+      const newExpression = parts.slice(0, -3).join(' ') + (parts.length > 3 ? ' ' : '')
+      
+      return {
+        ...state,
+        expression: newExpression,
+        current: lastOperand,
+        previous: ""
+      }
+    } else {
+      // If only one operand in expression, move it to current and clear expression
+      return {
+        ...state,
+        expression: "",
+        current: parts[0] || "0",
+        previous: ""
+      }
+    }
+  }
+  
+  // If we have a previous calculation result, clear it
+  if (state.previous) {
+    return { ...state, previous: "" }
+  }
+  
+  // Default: set current to "0"
+  return { ...state, current: "0" }
 }
 
 
@@ -383,47 +540,140 @@ export default function Display({ previous, current }: Props) {
 ----------------------------------------
 
 src/tools/calculator/Calculator.tsx
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import CopyButton from "../../components/CopyButton"
 import Display from "./Display"
 import Keypad from "./Keypad"
+import FractionDisplay from "../../components/FractionDisplay"
 import {
   createInitialState,
   inputDigit,
   inputDecimal,
+  inputFraction,
+  inputParenthesis,
+  inputCustomRoot,
+  inputPi,
   setOperator,
   calculate,
   clear,
   sqrt,
   cbrt,
   square,
+  backspace,
+  toggleFractionMode,
 } from "./calc"
 
 export default function Calculator() {
   const [state, setState] = useState(createInitialState())
   const [scientific, setScientific] = useState(false)
 
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      const key = event.key
+      
+      // Prevent default for calculator keys
+      if (/[0-9+\-*/.=()]/.test(key) || key === 'Enter' || key === 'Backspace' || key === 'Escape') {
+        event.preventDefault()
+      }
+      
+      // Numbers
+      if (/[0-9]/.test(key)) {
+        setState(s => inputDigit(s, key))
+      }
+      // Operators
+      else if (key === '+') {
+        setState(s => setOperator(s, '+'))
+      }
+      else if (key === '-') {
+        setState(s => setOperator(s, '-'))
+      }
+      else if (key === '*' || key === 'x' || key === 'X') {
+        setState(s => setOperator(s, '*'))
+      }
+      else if (key === '/') {
+        setState(s => setOperator(s, '/'))
+      }
+      else if (key === '^') {
+        setState(s => setOperator(s, '^'))
+      }
+      // Special keys
+      else if (key === '.' || key === ',') {
+        setState(s => inputDecimal(s))
+      }
+      else if (key === '(' || key === ')') {
+        setState(s => inputParenthesis(s, key))
+      }
+      else if (key === '=' || key === 'Enter') {
+        setState(s => calculate(s))
+      }
+      else if (key === 'Backspace') {
+        setState(s => backspace(s))
+      }
+      else if (key === 'Escape' || key === 'c' || key === 'C') {
+        setState(clear())
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   return (
-    <div className="card space-y-6">
+    <div className="card space-y-8 max-w-xl mx-auto">
       <div className="flex items-center justify-between">
-        <h2>Calculator</h2>
-        <button
-          className="btn-secondary"
-          onClick={() => setScientific(!scientific)}
-        >
-          {scientific ? "Basic" : "Scientific"}
-        </button>
+        <div>
+          <h2>Calculator</h2>
+          <span className="badge-secondary ui-blue">Basic & Scientific</span>
+        </div>
+        <div className="flex gap-2">
+          <button
+            className={`btn-secondary text-xs ${
+              state.showFraction ? "bg-black/5 dark:bg-white/10" : ""
+            }`}
+            onClick={() => setState(s => toggleFractionMode(s))}
+          >
+            a/b
+          </button>
+          <button
+            className={`btn-secondary ${
+              scientific ? "bg-black/5 dark:bg-white/10" : ""
+            }`}
+            onClick={() => setScientific(!scientific)}
+          >
+            {scientific ? "Basic" : "Scientific"}
+          </button>
+        </div>
       </div>
 
-      <Display previous={state.previous} current={state.current} />
+      <div className="glass rounded-2xl p-5 space-y-3">
+        <div className="text-sm text-[rgb(var(--muted))] min-h-[1.25rem]">
+          {state.previous || state.expression}
+        </div>
+        <div className="text-4xl md:text-5xl font-semibold flex items-center justify-between">
+          <div className="flex-1">
+            {state.showFraction && state.current.includes("/") ? (
+              <FractionDisplay result={state.current} />
+            ) : (
+              state.current
+            )}
+          </div>
+          <CopyButton value={state.current} className="ml-2" />
+        </div>
+      </div>
 
       <Keypad
         scientific={scientific}
         onDigit={(d) => setState(s => inputDigit(s, d))}
         onDecimal={() => setState(s => inputDecimal(s))}
+        onFraction={() => setState(s => inputFraction(s))}
+        onParenthesis={(p) => setState(s => inputParenthesis(s, p))}
+        onCustomRoot={() => setState(s => inputCustomRoot(s))}
+        onPi={() => setState(s => inputPi(s))}
         onOperator={(o) => setState(s => setOperator(s, o))}
         onPower={() => setState(s => setOperator(s, "^"))}
         onEquals={() => setState(s => calculate(s))}
         onClear={() => setState(clear())}
+        onBackspace={() => setState(s => backspace(s))}
         onSqrt={() => setState(s => ({ ...s, current: sqrt(s.current) }))}
         onCbrt={() => setState(s => ({ ...s, current: cbrt(s.current) }))}
         onSquare={() => setState(s => ({ ...s, current: square(s.current) }))}
@@ -438,6 +688,7 @@ export default function Calculator() {
 
 src/tools/rounding/Rounding.tsx
 import { useState } from "react"
+import CopyButton from "../../components/CopyButton"
 import {
   roundToPlace,
   roundToDecimals,
@@ -473,8 +724,11 @@ export default function Rounding() {
   }
 
   return (
-    <div className="card space-y-6">
-      <h2>Rounding</h2>
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>Rounding</h2>
+        <span className="badge-secondary ui-green">Precision Control</span>
+      </div>
 
       {/* Input value */}
       <div className="form-group">
@@ -555,9 +809,14 @@ export default function Rounding() {
 
       {/* Result */}
       <div className="glass rounded-lg p-4 text-lg font-mono">
-        {result === "" || Number.isNaN(result)
-          ? "—"
-          : result}
+        <div className="flex items-center justify-between">
+          <span className="flex-1">
+            {result === "" || Number.isNaN(result)
+              ? "—"
+              : result}
+          </span>
+          <CopyButton value={result === "" || Number.isNaN(result) ? "—" : String(result)} />
+        </div>
       </div>
     </div>
   )
@@ -597,6 +856,465 @@ export function roundToMultiple(value: number, multiple: number): number {
   return Math.round(value / multiple) * multiple
 }
 
+
+----------------------------------------
+
+src/tools/math/LCM.tsx
+import { useState } from "react"
+import CopyButton from "../../components/CopyButton"
+import { Plus, X } from "lucide-react"
+import { lcmMultiple } from "./calc"
+
+export default function LCM() {
+  const [numbers, setNumbers] = useState<string[]>(["", ""])
+  const [result, setResult] = useState<string>("—")
+
+  function addNumber() {
+    setNumbers([...numbers, ""])
+  }
+
+  function removeNumber(index: number) {
+    if (numbers.length > 2) {
+      setNumbers(numbers.filter((_, i) => i !== index))
+    }
+  }
+
+  function updateNumber(index: number, value: string) {
+    const newNumbers = [...numbers]
+    newNumbers[index] = value
+    setNumbers(newNumbers)
+  }
+
+  function calculate() {
+    const validNumbers = numbers
+      .map(n => parseInt(n))
+      .filter(n => !isNaN(n) && n > 0)
+    
+    if (validNumbers.length < 2) return
+    
+    const lcm = lcmMultiple(validNumbers)
+    setResult(String(lcm))
+  }
+
+  return (
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>LCM Calculator</h2>
+        <span className="badge-secondary ui-orange">Multiple Numbers</span>
+      </div>
+
+      <div className="space-y-3">
+        {numbers.map((num, index) => (
+          <div key={index} className="flex gap-2">
+            <input
+              className="form-input flex-1"
+              value={num}
+              onChange={(e) => updateNumber(index, e.target.value)}
+              placeholder={`Number ${index + 1}`}
+              type="number"
+            />
+            {numbers.length > 2 && (
+              <button
+                className="btn-danger px-3"
+                onClick={() => removeNumber(index)}
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="flex gap-3">
+        <button className="btn-secondary" onClick={addNumber}>
+          <Plus size={16} className="mr-2" />
+          Add Number
+        </button>
+        <button className="btn-accent" onClick={calculate}>
+          Calculate LCM
+        </button>
+      </div>
+
+      <div className="glass rounded-lg p-4 font-mono text-lg">
+        <div className="flex items-center justify-between">
+          <span className="flex-1">{result}</span>
+          <CopyButton value={result} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+----------------------------------------
+
+src/tools/math/calc.ts
+export function gcd(a: number, b: number): number {
+  return b === 0 ? a : gcd(b, a % b)
+}
+
+export function lcm(a: number, b: number): number {
+  return Math.abs(a * b) / gcd(a, b)
+}
+
+export function lcmMultiple(numbers: number[]): number {
+  return numbers.reduce((acc, num) => lcm(acc, num))
+}
+
+export function gcfMultiple(numbers: number[]): number {
+  return numbers.reduce((acc, num) => gcd(acc, num))
+}
+
+export function primeFactorization(n: number): number[] {
+  const factors: number[] = []
+  let num = n
+  
+  for (let i = 2; i * i <= num; i++) {
+    while (num % i === 0) {
+      factors.push(i)
+      num /= i
+    }
+  }
+  
+  if (num > 1) factors.push(num)
+  return factors
+}
+
+export function listFactors(n: number): number[] {
+  const factors: number[] = []
+  for (let i = 1; i <= Math.sqrt(n); i++) {
+    if (n % i === 0) {
+      factors.push(i)
+      if (i !== n / i) factors.push(n / i)
+    }
+  }
+  return factors.sort((a, b) => a - b)
+}
+
+export function isPrime(n: number): boolean {
+  if (n < 2) return false
+  for (let i = 2; i <= Math.sqrt(n); i++) {
+    if (n % i === 0) return false
+  }
+  return true
+}
+
+export function findPrimes(limit: number): number[] {
+  const primes: number[] = []
+  for (let i = 2; i <= limit; i++) {
+    if (isPrime(i)) primes.push(i)
+  }
+  return primes
+}
+
+----------------------------------------
+
+src/tools/math/GCF.tsx
+import { useState } from "react"
+import CopyButton from "../../components/CopyButton"
+import { Plus, X } from "lucide-react"
+import { gcfMultiple } from "./calc"
+
+export default function GCF() {
+  const [numbers, setNumbers] = useState<string[]>(["", ""])
+  const [result, setResult] = useState<string>("—")
+
+  function addNumber() {
+    setNumbers([...numbers, ""])
+  }
+
+  function removeNumber(index: number) {
+    if (numbers.length > 2) {
+      setNumbers(numbers.filter((_, i) => i !== index))
+    }
+  }
+
+  function updateNumber(index: number, value: string) {
+    const newNumbers = [...numbers]
+    newNumbers[index] = value
+    setNumbers(newNumbers)
+  }
+
+  function calculate() {
+    const validNumbers = numbers
+      .map(n => parseInt(n))
+      .filter(n => !isNaN(n) && n > 0)
+    
+    if (validNumbers.length < 2) return
+    
+    const gcf = gcfMultiple(validNumbers)
+    setResult(String(gcf))
+  }
+
+  return (
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>GCF Calculator</h2>
+        <span className="badge-secondary ui-teal">Multiple Numbers</span>
+      </div>
+
+      <div className="space-y-3">
+        {numbers.map((num, index) => (
+          <div key={index} className="flex gap-2">
+            <input
+              className="form-input flex-1"
+              value={num}
+              onChange={(e) => updateNumber(index, e.target.value)}
+              placeholder={`Number ${index + 1}`}
+              type="number"
+            />
+            {numbers.length > 2 && (
+              <button
+                className="btn-danger px-3"
+                onClick={() => removeNumber(index)}
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="flex gap-3">
+        <button className="btn-secondary" onClick={addNumber}>
+          <Plus size={16} className="mr-2" />
+          Add Number
+        </button>
+        <button className="btn-accent" onClick={calculate}>
+          Calculate GCF
+        </button>
+      </div>
+
+      <div className="glass rounded-lg p-4 font-mono text-lg">
+        <div className="flex items-center justify-between">
+          <span className="flex-1">{result}</span>
+          <CopyButton value={result} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+----------------------------------------
+
+src/tools/math/PrimeFactorization.tsx
+import { useState } from "react"
+import CopyButton from "../../components/CopyButton"
+import { primeFactorization } from "./calc"
+
+export default function PrimeFactorization() {
+  const [input, setInput] = useState("")
+  const [result, setResult] = useState<string>("—")
+
+  function calculate() {
+    const num = parseInt(input)
+    if (isNaN(num) || num < 2) return
+    
+    const factors = primeFactorization(num)
+    setResult(factors.join(" × "))
+  }
+
+  return (
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>Prime Factorization</h2>
+        <span className="badge-secondary ui-red">Factor Analysis</span>
+      </div>
+
+      <input
+        className="form-input"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Enter a number"
+        type="number"
+      />
+
+      <button className="btn-accent" onClick={calculate}>
+        Find Prime Factors
+      </button>
+
+      <div className="glass rounded-lg p-4 font-mono text-lg">
+        <div className="flex items-center justify-between">
+          <span className="flex-1">{result}</span>
+          <CopyButton value={result} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+----------------------------------------
+
+src/tools/math/PrimeFinder.tsx
+import { useState } from "react"
+import CopyButton from "../../components/CopyButton"
+import { findPrimes } from "./calc"
+
+export default function PrimeFinder() {
+  const [input, setInput] = useState("")
+  const [result, setResult] = useState<string>("—")
+
+  function calculate() {
+    const limit = parseInt(input)
+    if (isNaN(limit) || limit < 2) return
+    
+    const primes = findPrimes(limit)
+    if (primes.length > 50) {
+      setResult(`${primes.slice(0, 50).join(", ")}... (${primes.length} total primes)`)
+    } else {
+      setResult(primes.join(", "))
+    }
+  }
+
+  return (
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>Prime Finder</h2>
+        <span className="badge-secondary ui-yellow">Range Search</span>
+      </div>
+
+      <input
+        className="form-input"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Find primes up to..."
+        type="number"
+      />
+
+      <button className="btn-accent" onClick={calculate}>
+        Find Primes
+      </button>
+
+      <div className="glass rounded-lg p-4 font-mono text-lg max-h-40 overflow-y-auto">
+        <div className="flex items-start justify-between gap-2">
+          <span className="flex-1">{result}</span>
+          <CopyButton value={result} className="flex-shrink-0" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+----------------------------------------
+
+src/tools/math/ListFactors.tsx
+import { useState } from "react"
+import CopyButton from "../../components/CopyButton"
+import { listFactors } from "./calc"
+
+export default function ListFactors() {
+  const [input, setInput] = useState("")
+  const [result, setResult] = useState<string>("—")
+
+  function calculate() {
+    const num = parseInt(input)
+    if (isNaN(num) || num < 1) return
+    
+    const factors = listFactors(num)
+    setResult(factors.join(", "))
+  }
+
+  return (
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>List Factors</h2>
+        <span className="badge-secondary ui-indigo">Complete List</span>
+      </div>
+
+      <input
+        className="form-input"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Enter a number"
+        type="number"
+      />
+
+      <button className="btn-accent" onClick={calculate}>
+        List All Factors
+      </button>
+
+      <div className="glass rounded-lg p-4 font-mono text-lg">
+        <div className="flex items-center justify-between">
+          <span className="flex-1">{result}</span>
+          <CopyButton value={result} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+----------------------------------------
+
+src/tools/time/TimeCalculator.tsx
+import { useState } from "react"
+import CopyButton from "../../components/CopyButton"
+
+export default function TimeCalculator() {
+  const [startTime, setStartTime] = useState("")
+  const [endTime, setEndTime] = useState("")
+  const [result, setResult] = useState<string>("—")
+
+  function calculateDifference() {
+    if (!startTime || !endTime) return
+
+    const start = new Date(`2000-01-01T${startTime}:00`)
+    const end = new Date(`2000-01-01T${endTime}:00`)
+    
+    let diff = end.getTime() - start.getTime()
+    
+    // Handle next day scenario
+    if (diff < 0) {
+      diff += 24 * 60 * 60 * 1000
+    }
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+    
+    setResult(`${hours}h ${minutes}m ${seconds}s`)
+  }
+
+  return (
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>Time Calculator</h2>
+        <span className="badge-secondary ui-gray">Duration & Difference</span>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="form-label">Start Time</label>
+          <input
+            className="form-input"
+            type="time"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="form-label">End Time</label>
+          <input
+            className="form-input"
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <button className="btn-accent" onClick={calculateDifference}>
+        Calculate Difference
+      </button>
+
+      <div className="glass rounded-lg p-4 font-mono text-lg">
+        <div className="flex items-center justify-between">
+          <span className="flex-1">{result}</span>
+          <CopyButton value={result} />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 ----------------------------------------
 
@@ -650,6 +1368,8 @@ export function fractionToPercent(n: number, d: number): number {
 
 src/tools/fractions/Fractions.tsx
 import { useState } from "react"
+import CopyButton from "../../components/CopyButton"
+import FractionDisplay from "../../components/FractionDisplay"
 import {
   decimalToFraction,
   simplifyFraction,
@@ -714,8 +1434,11 @@ export default function Fractions() {
   }
 
   return (
-    <div className="card space-y-6">
-      <h2>Fractions</h2>
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>Fractions</h2>
+        <span className="badge-secondary ui-pink">Visual Display</span>
+      </div>
 
       <input
         className="form-input"
@@ -725,28 +1448,33 @@ export default function Fractions() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        <button className="btn-secondary" onClick={handleDecimalToFraction}>
+        <button className="btn-accent" onClick={handleDecimalToFraction}>
           Decimal → Fraction
         </button>
-        <button className="btn-secondary" onClick={handleSimplify}>
+        <button className="btn-green" onClick={handleSimplify}>
           Simplify
         </button>
-        <button className="btn-secondary" onClick={handleMixed}>
+        <button className="btn-purple" onClick={handleMixed}>
           To Mixed
         </button>
-        <button className="btn-secondary" onClick={handleImproper}>
+        <button className="btn-danger" onClick={handleImproper}>
           To Improper
         </button>
-        <button className="btn-secondary" onClick={handlePercent}>
+        <button className="btn-orange" onClick={handlePercent}>
           To Percent
         </button>
-        <button className="btn-secondary" onClick={handleDecimal}>
+        <button className="btn-teal" onClick={handleDecimal}>
           To Decimal
         </button>
       </div>
 
       <div className="glass rounded-lg p-4 font-mono text-lg">
-        {result}
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <FractionDisplay result={result} />
+          </div>
+          <CopyButton value={result} />
+        </div>
       </div>
     </div>
   )
@@ -762,6 +1490,7 @@ export const groups: Record<string, UnitMap> = {
   length: {
     m: 1,
     cm: 100,
+    mm: 1000,
     km: 0.001,
     in: 39.3701,
     ft: 3.28084,
@@ -773,6 +1502,7 @@ export const groups: Record<string, UnitMap> = {
     g: 1000,
     lb: 2.20462,
     oz: 35.274,
+    ton: 0.001,
   },
   volume: {
     l: 1,
@@ -780,35 +1510,46 @@ export const groups: Record<string, UnitMap> = {
     gal: 0.264172,
     qt: 1.05669,
     pt: 2.11338,
+    cup: 4.22675,
+    floz: 33.814,
   },
   area: {
     sqm: 1,
+    sqcm: 10000,
     sqkm: 0.000001,
     sqft: 10.7639,
+    sqin: 1550,
     acre: 0.000247105,
   },
   speed: {
     mps: 1,
     kph: 3.6,
     mph: 2.23694,
+    fps: 3.28084,
+    knot: 1.94384,
   },
   time: {
     s: 1,
     min: 1 / 60,
     hr: 1 / 3600,
     day: 1 / 86400,
+    week: 1 / 604800,
+    month: 1 / 2629746,
+    year: 1 / 31556952,
   },
   digital: {
     byte: 1,
-    kb: 1024,
-    mb: 1024 ** 2,
-    gb: 1024 ** 3,
-    tb: 1024 ** 4,
+    kb: 1 / 1000,
+    mb: 1 / (1000 ** 2),
+    gb: 1 / (1000 ** 3),
+    tb: 1 / (1000 ** 4),
+    pb: 1 / (1000 ** 5),
   },
   biblical: {
     cubit: 1,
     span: 2,
     handbreadth: 6,
+    finger: 24,
   },
 }
 
@@ -846,6 +1587,7 @@ export function convertTemperature(
 
 src/tools/unit-converter/UnitConverter.tsx
 import { useState } from "react"
+import CopyButton from "../../components/CopyButton"
 import { groups, convert, convertTemperature } from "./calc"
 
 export default function UnitConverter() {
@@ -870,8 +1612,11 @@ export default function UnitConverter() {
       : Object.keys(groups[group])
 
   return (
-    <div className="card space-y-6">
-      <h2>Unit Converter</h2>
+    <div className="card space-y-8 max-w-xl mx-auto">
+      <div>
+        <h2>Unit Converter</h2>
+        <span className="badge-secondary ui-purple">Multi-Category</span>
+      </div>
 
       <select className="form-input" value={group} onChange={e => setGroup(e.target.value)}>
         <option value="length">Length / Distance</option>
@@ -905,7 +1650,10 @@ export default function UnitConverter() {
       </div>
 
       <div className="glass rounded-lg p-4 font-mono text-lg">
-        {result}
+        <div className="flex items-center justify-between">
+          <span className="flex-1">{result}</span>
+          <CopyButton value={result} />
+        </div>
       </div>
     </div>
   )
@@ -924,6 +1672,20 @@ src/styles/theme.css
 
   --accent: 17 17 17;
   --accent-contrast: 255 255 255;
+  --accent-blue: 59 130 246;
+  --accent-blue-contrast: 255 255 255;
+  --accent-green: 34 197 94;
+  --accent-green-contrast: 255 255 255;
+  --accent-purple: 147 51 234;
+  --accent-purple-contrast: 255 255 255;
+  --accent-orange: 249 115 22;
+  --accent-orange-contrast: 255 255 255;
+  --accent-pink: 236 72 153;
+  --accent-pink-contrast: 255 255 255;
+  --accent-teal: 20 184 166;
+  --accent-teal-contrast: 255 255 255;
+  --accent-yellow: 234 179 8;
+  --accent-yellow-contrast: 10 10 10;
   --danger: 220 38 38;
   --success: 22 163 74;
 }
@@ -937,6 +1699,20 @@ src/styles/theme.css
 
   --accent: 255 255 255;
   --accent-contrast: 10 10 10;
+  --accent-blue: 96 165 250;
+  --accent-blue-contrast: 10 10 10;
+  --accent-green: 74 222 128;
+  --accent-green-contrast: 10 10 10;
+  --accent-purple: 168 85 247;
+  --accent-purple-contrast: 255 255 255;
+  --accent-orange: 251 146 60;
+  --accent-orange-contrast: 10 10 10;
+  --accent-pink: 244 114 182;
+  --accent-pink-contrast: 10 10 10;
+  --accent-teal: 45 212 191;
+  --accent-teal-contrast: 10 10 10;
+  --accent-yellow: 250 204 21;
+  --accent-yellow-contrast: 10 10 10;
 }
 
 
@@ -962,7 +1738,9 @@ src/styles/semantic.css
 
 @layer components {
   .page-frame {
-    @apply min-h-screen overflow-x-hidden;
+    @apply min-h-screen overflow-x-hidden
+           bg-gradient-to-br from-blue-50 via-white to-slate-100
+           dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900;
   }
 
   .section {
@@ -971,6 +1749,18 @@ src/styles/semantic.css
 
   .container {
     @apply max-w-6xl mx-auto;
+  }
+
+  .sidebar-gradient {
+    @apply bg-gradient-to-br from-blue-50 via-white to-blue-100
+           backdrop-blur-[12px]
+           border border-[rgb(var(--border))]
+           shadow-[0_10px_30px_rgba(59,130,246,0.1),inset_0_1px_0_rgba(255,255,255,0.3)];
+  }
+
+  .dark .sidebar-gradient {
+    @apply bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900
+           shadow-[0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)];
   }
 
   .glass {
@@ -1016,6 +1806,97 @@ src/styles/semantic.css
            transition-all duration-200
            border border-[rgb(var(--border))]
            hover:bg-black/5 dark:hover:bg-white/10 hover:scale-105
+           cursor-pointer;
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center
+           rounded-full px-6 py-3
+           text-sm font-medium
+           transition-all duration-200
+           bg-blue-500 text-white
+           hover:bg-blue-600 hover:scale-105
+           cursor-pointer;
+  }
+
+  .btn-green {
+    @apply inline-flex items-center justify-center
+           rounded-full px-6 py-3
+           text-sm font-medium
+           transition-all duration-200
+           bg-green-500 text-white
+           hover:bg-green-600 hover:scale-105
+           cursor-pointer;
+  }
+
+  .btn-purple {
+    @apply inline-flex items-center justify-center
+           rounded-full px-6 py-3
+           text-sm font-medium
+           transition-all duration-200
+           bg-purple-500 text-white
+           hover:bg-purple-600 hover:scale-105
+           cursor-pointer;
+  }
+
+  .btn-orange {
+    @apply inline-flex items-center justify-center
+           rounded-full px-6 py-3
+           text-sm font-medium
+           transition-all duration-200
+           bg-orange-500 text-white
+           hover:bg-orange-600 hover:scale-105
+           cursor-pointer;
+  }
+
+  .btn-pink {
+    @apply inline-flex items-center justify-center
+           rounded-full px-6 py-3
+           text-sm font-medium
+           transition-all duration-200
+           bg-pink-500 text-white
+           hover:bg-pink-600 hover:scale-105
+           cursor-pointer;
+  }
+
+  .btn-teal {
+    @apply inline-flex items-center justify-center
+           rounded-full px-6 py-3
+           text-sm font-medium
+           transition-all duration-200
+           bg-teal-500 text-white
+           hover:bg-teal-600 hover:scale-105
+           cursor-pointer;
+  }
+
+  .btn-yellow {
+    @apply inline-flex items-center justify-center
+           rounded-full px-6 py-3
+           text-sm font-medium
+           transition-all duration-200
+           bg-yellow-500 text-black
+           hover:bg-yellow-600 hover:scale-105
+           cursor-pointer;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center
+           rounded-full px-6 py-3
+           text-sm font-medium
+           transition-all duration-200
+           bg-red-500 text-white
+           hover:bg-red-600 hover:scale-105
+           cursor-pointer;
+  }
+
+  .btn-equals {
+    @apply inline-flex items-center justify-center
+           rounded-full px-6 py-3
+           text-sm font-medium
+           transition-all duration-200
+           bg-[rgb(var(--accent))]
+           text-[rgb(var(--accent-contrast))]
+           hover:opacity-90 hover:scale-105
            cursor-pointer;
   }
 
@@ -1226,6 +2107,8 @@ src/styles/semantic.css
   .progress-sm {
     @apply h-1;
   }
+
+  
 }
 
 ----------------------------------------
@@ -1267,19 +2150,107 @@ export const slideDown = {
 
 ----------------------------------------
 
-src/components/ui/ThemeToggle.tsx
-import { Moon, Sun } from "lucide-react"
-import { useTheme } from "../../hooks/useTheme"
+src/components/CopyButton.tsx
+import { Copy, Check } from "lucide-react"
+import { useState } from "react"
 
-export default function ThemeToggle() {
-  const { dark, setDark } = useTheme()
+interface Props {
+  value: string
+  className?: string
+}
+
+export default function CopyButton({ value, className = "" }: Props) {
+  const [copied, setCopied] = useState(false)
+
+  async function handleCopy() {
+    if (value === "—" || value === "Error") return
+    
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error("Failed to copy:", err)
+    }
+  }
 
   return (
     <button
-      onClick={() => setDark(!dark)}
-      className="btn-secondary gap-2"
+      onClick={handleCopy}
+      className={`btn-secondary p-2 ${className}`}
+      disabled={value === "—" || value === "Error"}
     >
-      {dark ? <Sun size={16} /> : <Moon size={16} />}
+      {copied ? <Check size={16} /> : <Copy size={16} />}
+    </button>
+  )
+}
+
+----------------------------------------
+
+src/components/FractionDisplay.tsx
+interface FractionDisplayProps {
+  result: string
+}
+
+export default function FractionDisplay({ result }: FractionDisplayProps) {
+  if (result === "—") {
+    return <div className="text-center">{result}</div>
+  }
+
+  // Handle mixed numbers (e.g., "2 3/4")
+  if (result.includes(" ") && result.includes("/")) {
+    const parts = result.split(" ")
+    const whole = parts[0]
+    const [numerator, denominator] = parts[1].split("/")
+    
+    return (
+      <div className="flex items-center justify-center gap-2">
+        <span className="text-2xl">{whole}</span>
+        <div className="flex flex-col items-center">
+          <span className="text-sm leading-none">{numerator}</span>
+          <div className="border-t border-current w-6"></div>
+          <span className="text-sm leading-none">{denominator}</span>
+        </div>
+      </div>
+    )
+  }
+
+  // Handle regular fractions (e.g., "3/4")
+  if (result.includes("/")) {
+    const [numerator, denominator] = result.split("/")
+    
+    return (
+      <div className="flex flex-col items-center">
+        <span className="text-lg leading-none">{numerator}</span>
+        <div className="border-t border-current w-8"></div>
+        <span className="text-lg leading-none">{denominator}</span>
+      </div>
+    )
+  }
+
+  // Handle regular numbers, decimals, percentages
+  return <div className="text-center">{result}</div>
+}
+
+----------------------------------------
+
+src/components/ui/ThemeToggle.tsx
+import { Moon, Sun, Monitor } from "lucide-react"
+import { useTheme } from "../../hooks/useTheme"
+
+export default function ThemeToggle() {
+  const { theme, setTheme } = useTheme()
+
+  const nextTheme = theme === "light" ? "dark" : theme === "dark" ? "system" : "light"
+  const Icon = theme === "light" ? Sun : theme === "dark" ? Moon : Monitor
+
+  return (
+    <button
+      onClick={() => setTheme(nextTheme)}
+      className="btn-secondary gap-2"
+      title={`Current: ${theme}, Click for: ${nextTheme}`}
+    >
+      <Icon size={16} />
     </button>
   )
 }
@@ -1289,12 +2260,26 @@ export default function ThemeToggle() {
 
 src/components/layout/Navbar.tsx
 import ThemeToggle from "../ui/ThemeToggle.tsx"
+import { Menu, X } from "lucide-react"
 
-export default function Navbar() {
+interface Props {
+  sidebarOpen: boolean
+  setSidebarOpen: (open: boolean) => void
+}
+
+export default function Navbar({ sidebarOpen, setSidebarOpen }: Props) {
   return (
     <header className="navbar-float h-16 flex items-center">
       <div className="container flex items-center justify-between">
-        <h2 className="text-lg font-semibold">All In One Calculator</h2>
+        <div className="flex items-center gap-3">
+          <button
+            className="md:hidden btn-secondary p-2"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+          <h2 className="text-lg font-semibold">All In One Calculator</h2>
+        </div>
         <ThemeToggle />
       </div>
     </header>
@@ -1309,6 +2294,13 @@ import {
   Calculator,
   ArrowLeftRight,
   Ruler,
+  Hash,
+  Divide,
+  GitBranch,
+  List,
+  Search,
+  Clock,
+  CircleDivide,
 } from "lucide-react"
 
 import type { ToolId } from "../../tools/types"
@@ -1317,7 +2309,13 @@ const items: { id: ToolId; label: string; icon: any }[] = [
   { id: "calculator", label: "Calculator", icon: Calculator },
   { id: "rounding", label: "Number Rounding", icon: ArrowLeftRight },
   { id: "unit-converter", label: "Unit Converter", icon: Ruler },
-  { id: "fractions", label: "Fractions", icon: Ruler },
+  { id: "fractions", label: "Fractions", icon: CircleDivide },
+  { id: "lcm", label: "LCM Calculator", icon: Hash },
+  { id: "gcf", label: "GCF Calculator", icon: Divide },
+  { id: "prime-factorization", label: "Prime Factorization", icon: GitBranch },
+  { id: "list-factors", label: "List Factors", icon: List },
+  { id: "prime-finder", label: "Prime Finder", icon: Search },
+  { id: "time-calculator", label: "Time Calculator", icon: Clock },
 ]
 
 interface Props {
@@ -1327,7 +2325,7 @@ interface Props {
 
 export default function Sidebar({ active, onSelect }: Props) {
   return (
-    <aside className="glass rounded-xl p-4 space-y-2">
+    <aside className="sidebar-gradient rounded-xl p-4 space-y-2">
       {items.map(({ id, label, icon: Icon }) => {
         const isActive = active === id
 
@@ -1357,14 +2355,39 @@ export default function Sidebar({ active, onSelect }: Props) {
 src/hooks/useTheme.ts
 import { useEffect, useState } from "react"
 
+type Theme = "light" | "dark" | "system"
+
 export function useTheme() {
+  const [theme, setTheme] = useState<Theme>("system")
   const [dark, setDark] = useState(false)
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") as Theme
+    if (savedTheme) {
+      setTheme(savedTheme)
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem("theme", theme)
+    
+    if (theme === "system") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
+      setDark(mediaQuery.matches)
+      
+      const handleChange = (e: MediaQueryListEvent) => setDark(e.matches)
+      mediaQuery.addEventListener("change", handleChange)
+      return () => mediaQuery.removeEventListener("change", handleChange)
+    } else {
+      setDark(theme === "dark")
+    }
+  }, [theme])
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark)
   }, [dark])
 
-  return { dark, setDark }
+  return { theme, setTheme, dark }
 }
 
 
@@ -1388,50 +2411,110 @@ boomisland.py
 eslint.config.js
 public/vite.svg
 .git/.DS_Store
+.git/ORIG_HEAD
 .git/config
 .git/HEAD
 .git/description
 .git/index
 .git/COMMIT_EDITMSG
 .git/FETCH_HEAD
+.git/objects/95/c0bbe2760e5fdb1f2c166d2b278a789d419b16
+.git/objects/57/9da46416f42306820d31707168cb16466bfab6
+.git/objects/6f/ecf64fd0278a5e610e8ea6d0a734452e6a8b81
+.git/objects/03/2b4da3cad6ba405f6c184bc77969e264fe3958
+.git/objects/35/7c73360a62d120270d465c2da492dc516960a6
+.git/objects/51/6569df55ff825ff43d8bd885e7197c8df1d162
+.git/objects/3d/7373fc1f43f7052bf7e243d80dac6951460e29
 .git/objects/94/c0b2fc152a086447a04f62793957235d2475be
 .git/objects/34/3fc7a5d0230c141f2099e34f3b2123b578c796
-.git/objects/b5/334b183e3e9c0612c0defe29cabd3dd8878e64
+.git/objects/5f/ca10bd5aceb2346cd3ff94fb417e3de148d611
+.git/objects/5f/af47115458ee2c5e1f5cb4a311da96a1d1c95e
+.git/objects/a3/d5d6bf7b51c93a706ca6087824612e2db49115
+.git/objects/ac/8d45dc894d7ff8c59491c58097f80ddc2d09a6
+.git/objects/ad/440c8aba1ef1fb0bd2019f221aebb42a41cc4e
+.git/objects/ad/8afc7c8a438309cf044f5fc4b97007ff166ce8
+.git/objects/d0/508afb2969cc120b20bf0a9dd9a50ca23fdc72
 .git/objects/be/57c85affdf995b3a018ddfbee1080a323a4c1c
+.git/objects/be/197d14af05a40a8a3abade90332c3171c8db39
+.git/objects/da/efdcce71f750db22b2c3ec036cae8de97e5569
 .git/objects/a5/47bf36d8d11a4f89c59c144f24795749086dd1
-.git/objects/bd/263f37d5befd8e5414e75a63c0d7a636613c01
-.git/objects/e2/e0c9205d90ef435daffcbdd45007d56c2323ef
-.git/objects/fe/541185126ad0005ae42d74ac045e3a906fcd95
-.git/objects/c8/1fdae9f0c6116db8f1af7e6a2cfcff798ef8c7
-.git/objects/11/a2b26f5e9eb51c9b87a3fed6a280ef75713d11
+.git/objects/d1/421f408c978a5b1aaec37d9b08cb7c1e95e9bb
+.git/objects/d6/d21f64ea70e4906e15ff0d24c695601b4c71f5
+.git/objects/ae/b1de173b792b418f64e2d438b86ac2c77d3006
+.git/objects/f4/f85886a012ed2fa333af19c561b385185590ad
+.git/objects/eb/c88dc1fd76267a38cc4576184dc42b29f9d719
+.git/objects/ee/27673dea021bfd1ec347d9739c9c63a6faf96c
+.git/objects/fc/23f539bf70e3e1d1e71ee8d5cbb3c989e1d4c5
+.git/objects/f5/b9edd0084911696dc48940d5b66dc22a5b284c
+.git/objects/e4/1d644817051ee51cd311ec94a9653f11c6d6c7
+.git/objects/c1/604d1f340e84e9742df3a98ab67b2ad8135875
+.git/objects/c1/6ce7dfd7985783c8a7115922ddc3c66cfd50dc
+.git/objects/ec/72d693cbf444ea210c68224abc5b87ca70209c
+.git/objects/4e/928f607bf4e9a44db320acb622b53a6454a57c
+.git/objects/11/59e47adb21ec18d8112b2edf97a4a3b7183a3a
 .git/objects/1f/fef600d959ec9e396d5a260bd3f5b927b2cef8
+.git/objects/74/d54c13296648e619f4df3d31e36a2ce56a9388
+.git/objects/74/c2708e0e7a122f63162c0d1f473fdb3e5d9d3d
+.git/objects/17/7f0c9f14fb300195113007dcd15f9099e9a883
 .git/objects/8a/67f62f4ceebff3424e6e8cd4b3c25b17347546
-.git/objects/7e/c40fe712b610678ba6b44048098de24b32c47b
+.git/objects/8a/af8aee6c8819f803b4b5ea4a30c346a053c829
 .git/objects/7e/7106d56c4a0e21dc0d7f2215b22530ddc6bb1b
-.git/objects/91/763502f9adb5c857dd63d71be2f71350678ad8
+.git/objects/21/78475cb39191fbde7f57b97ee6e9266e0da965
+.git/objects/86/ca732998301e1ad1924f6640c6855927aba4de
+.git/objects/44/ea0afc5ca0279abd4cd4cac2a55e7877b514e2
+.git/objects/88/8f7d077bd9584c8de1ad9456da940ef574b61f
+.git/objects/88/4eb1b6dbfdb9d6dd185fa1dd2d2608e556bef6
+.git/objects/9f/9dfb03594f028cee0c73e6f25a8a12b3ecf2ac
+.git/objects/36/0197cd2cf5c947488cdb1124fc74ca50286c63
+.git/objects/09/f0d1e25b66f7ec609386b5b3d0ca1aad0165df
+.git/objects/09/4bb5dae1e6e5dc32f771c4d5a798c3b8603ef9
+.git/objects/91/daf041cb610898abd29be3536339dd2f97a817
 .git/objects/96/934806f4bf6a6b3fe177311003fa6668da1fa7
-.git/objects/3a/195d29a391df1f959aade3ec4500ee82875395
 .git/objects/5e/6b472f583e34a1cca751440d4f241495475723
-.git/objects/37/fd8597a965279c1c62292ebfae9b766c13d31b
+.git/objects/5b/f736cf925abbbda282d244d1d0560dafce2dc3
+.git/objects/5b/c59b44296ea9f4dcdc1d1cc388b0dc4becc0c3
 .git/objects/08/a3ac9e1e5c44ce374f782d7c4fa3aa70e4c1ff
 .git/objects/6c/2f1039a72314ff526935d841b651c0b14582bd
 .git/objects/6c/87de9bb3358469122cc991d5cf578927246184
+.git/objects/99/3c0f2222a28490ef21093af033816786bf657c
 .git/objects/55/7b37c44d5cb352ff331f90e7fba0189cdfa65e
-.git/objects/a7/b389ee0d61c0e2bf478d0654132a6d11975660
+.git/objects/55/062f8f861b15f3c4fb192ddeee7a039cee0afb
+.git/objects/0f/6e68b47ef241b210534f58250d69b95ca1cb91
+.git/objects/0a/bbb2f9e3fbf9f6954d01ae3f84bb7f8524f8e4
+.git/objects/0a/388a7b73387a5392c920555df977c6cfe96ffc
+.git/objects/d3/636a75368c17b5ef27784ff6b14de9922279e9
+.git/objects/ba/34119e22f13ac5f1d020f48fe9a3d39a607070
 .git/objects/a9/b5a59ca647ca0102d2501b56cedd83ad7b6818
-.git/objects/d2/86dbb650e7226f86c8c63c56a2aff3f408ad4b
 .git/objects/d2/e77611fd3d959fee0487c41bd27b318be32b04
-.git/objects/db/ec4210640262c7724260f52a35df6c2e6f89cc
+.git/objects/af/e67bf097557d2406263e79ea15fabc791a5bec
+.git/objects/b7/e89cd716c76c214a3dc3aa91e4e1f3135e2749
+.git/objects/db/edfbc4ebbb0366c10e9d903f153bf40e8ce246
 .git/objects/b9/d355df2a5956b526c004531b7b0ffe412461e0
-.git/objects/cc/6e32ad70defe4f4421a7d6931a9b69791fec72
+.git/objects/c3/0a5a0544d9dff6d9d5f1688d06d2cfdcbf8ba2
+.git/objects/c3/2a9ebde2188a7ea53c8af1a6078c9fe4a95678
+.git/objects/c3/74d8edfb79128d535d21a9d95a5a8d9a9292db
+.git/objects/f7/4f0c2359009c26a7af5944237e9564bc1a4a98
 .git/objects/e8/777c7baaef4ad559fea29ab65156f63317f168
+.git/objects/e9/370bdf769a9b62164d095237f7dcf86b11fd2d
 .git/objects/e7/b8dfb1b2a60bd50538bec9f876511b9cac21e3
-.git/objects/41/87ebd1793c6abb5d7df6bb7bc53277064d2eb3
+.git/objects/ce/1799bccce13ed00d7957ea9b72c61457c5890e
+.git/objects/2d/d7afbaeaa1712af812fbb15a7c09c986bbb390
+.git/objects/41/dc25c8f356ce1213d8cfe4c02a7b3ef961787d
+.git/objects/83/a08c0570f282feb5be90fb1b0a6014f8486e7d
+.git/objects/1b/3396fa2cbd4de618c38a55d78047fb0547150b
+.git/objects/77/fd48d27e6053429c8a5674e65c4543c32e8cad
+.git/objects/1e/524dbb4413f433c8c6b3964a92a6729fa9034a
+.git/objects/24/aa7dd68fd0697ff9952b916e8af5b40b26ca9b
+.git/objects/23/454abe547fbefb33119647854a2e0ef06293d3
+.git/objects/8c/82f71d4aa83333dc084b94594a56a30119b93e
 .git/objects/1d/93e538f9f3cef3fdabcf3d5f04189a717b9a4d
-.git/objects/76/6ac481704b98b3691080c606422f3ff6a12e67
-.git/objects/2b/a63fa27550b512d4be2827adb6dc22f82d7ac5
+.git/objects/1d/9ea34c70e16138d1b9651d52890b4799216a78
+.git/objects/71/9893bbda70921e5cabe163fa19f23d37623351
+.git/objects/76/fef57b19ebf520b0d2992423d91c83f0ee3af7
+.git/objects/2b/26af1016effbe321aaab9d4f17f26e45f04689
 .git/objects/8b/0f57b91aeb45c54467e29f983a0893dc83c4d9
-.git/objects/22/d7bbef24888aca16be5a73731897ad6609bf67
+.git/objects/8e/637aebe53e04b76073ca81f1384f65f15acc6f
+.git/objects/22/434abccb48fbaef2babd845a01ec737c6b99ea
 .git/info/exclude
 .git/logs/HEAD
 .git/logs/refs/heads/main

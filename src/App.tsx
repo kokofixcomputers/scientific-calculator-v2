@@ -14,6 +14,7 @@ import PrimeFactorization from "./tools/math/PrimeFactorization.tsx"
 import ListFactors from "./tools/math/ListFactors.tsx"
 import PrimeFinder from "./tools/math/PrimeFinder.tsx"
 import TimeCalculator from "./tools/time/TimeCalculator.tsx"
+import OneStepEquation from "./tools/oneStepEquation/OneStepEquation.tsx"
 
 import type { ToolId } from "./tools/types"
 
@@ -33,8 +34,8 @@ export default function App() {
         />
       )}
 
-      <div className="pt-16 px-4 md:px-6">
-        <div className="container md:grid md:grid-cols-[260px_1fr] md:gap-6">
+      <div className="pt-24 pb-16 px-4 md:px-6">
+        <div className="max-w-4xl mx-auto md:grid md:grid-cols-[220px_1fr]">
           {/* Sidebar */}
           <div className={`${
             sidebarOpen ? "fixed left-0 top-16 bottom-0 w-64 z-50 p-4" : "hidden"
@@ -57,6 +58,7 @@ export default function App() {
             {activeTool === "list-factors" && <ListFactors />}
             {activeTool === "prime-finder" && <PrimeFinder />}
             {activeTool === "time-calculator" && <TimeCalculator />}
+            {activeTool === "one-step-equation" && <OneStepEquation />}
           </div>
         </div>
       </div>

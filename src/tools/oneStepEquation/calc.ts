@@ -233,5 +233,6 @@ function exprToString(expr: Expr): string {
 export function parseSentence(sentence: string): string {
   const tokens = tokenize(sentence);
   const ast = parseExpression(tokens);
+  if (exprToString(ast) === "0") return "Could not parse the sentence.";
   return exprToString(ast);
 }

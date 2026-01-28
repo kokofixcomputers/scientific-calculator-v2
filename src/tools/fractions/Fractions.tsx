@@ -80,7 +80,7 @@ export default function Fractions() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <button className="btn-accent" onClick={handleDecimalToFraction}>
-          Decimal → Fraction
+          To Fraction
         </button>
         <button className="btn-green" onClick={handleSimplify}>
           Simplify

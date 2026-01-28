@@ -23,6 +23,11 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      - name: Fix asset paths in index.html
+        run: |
+          sed -i 's|src="/assets/|src="assets/|g' dist/index.html
+          sed -i 's|href="/assets/|href="assets/|g' dist/index.html
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist/

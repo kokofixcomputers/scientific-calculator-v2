@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react"
 import CopyButton from "../../components/CopyButton"
-import Display from "./Display"
 import Keypad from "./Keypad"
 import FractionDisplay from "../../components/FractionDisplay"
 import {
@@ -142,7 +141,7 @@ export default function Calculator() {
               state.current
             )}
           </div>
-          <CopyButton value={state.current} className="ml-2" ref={copyButtonRef} />
+          <CopyButton value={state.current} className="ml-2" />
         </div>
       </div>
 

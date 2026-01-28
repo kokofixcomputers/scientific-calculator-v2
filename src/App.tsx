@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { Menu, X } from "lucide-react"
 
 import Navbar from "./components/layout/Navbar"
 import Sidebar from "./components/layout/Sidebar"

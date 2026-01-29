@@ -145,6 +145,17 @@ function parseExpression(words: string[]): Expr {
     return bin('/', asNumber(words[2])!, asNumber(words[3])!);
   }
 
+  if (
+    words.length === 4 &&
+    words[0] === 'product' &&
+    words[1] === 'of' &&
+    asNumber(words[2]) &&
+    asNumber(words[3])
+  ) {
+    return bin('*', asNumber(words[2])!, asNumber(words[3])!);
+  }
+    
+
   // 4) "3 quotient 6"
   if (words.length === 3 && asNumber(words[0]) && words[1] === 'quotient' && asNumber(words[2])) {
     return bin('/', asNumber(words[0])!, asNumber(words[2])!);

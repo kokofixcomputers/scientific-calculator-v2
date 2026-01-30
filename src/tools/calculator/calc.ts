@@ -28,11 +28,26 @@ export function inputFraction(state: CalcState): CalcState {
   return { ...state, current: state.current + "/" }
 }
 
+export function inputMixedNumber(state: CalcState): CalcState {
+  if (state.current.includes(" ") || state.current.includes("/")) return state
+  return { ...state, current: state.current + " " }
+}
+
 export function clear(): CalcState {
   return createInitialState()
 }
 
 export function setOperator(state: CalcState, op: Operator): CalcState {
+  // Handle negative numbers at start or after operators
+  if (op === "-" && (state.current === "0" || state.expression.endsWith(" "))) {
+    return { ...state, current: "-" }
+  }
+  
+  // For power operator, keep building in current instead of moving to expression
+  if (op === "^") {
+    return { ...state, current: state.current + "^" }
+  }
+  
   return {
     ...state,
     expression: state.expression + state.current + " " + op + " ",
@@ -54,8 +69,17 @@ export function inputPi(state: CalcState): CalcState {
 }
 
 function evaluateExpression(expr: string): number {
+  // Handle mixed numbers: 2 3/4 -> (2 + 3/4)
+  let processedExpr = expr.replace(/\b(\d+)\s+(\d+)\/(\d+)\b/g, '($1 + $2/$3)')
+  
+  // Handle negative mixed numbers: -2 3/4 -> -(2 + 3/4)
+  processedExpr = processedExpr.replace(/-(\d+)\s+(\d+)\/(\d+)\b/g, '-($1 + $2/$3)')
+  
   // Handle fractions in expression
-  let processedExpr = expr.replace(/\b(\d+)\/(\d+)\b/g, '($1/$2)')
+  processedExpr = processedExpr.replace(/\b(\d+)\/(\d+)\b/g, '($1/$2)')
+  
+  // Clean up expressions that start with "0 - " to just "-"
+  processedExpr = processedExpr.replace(/^0\s*-\s*/, '-')
   
   // Handle custom roots: 3√(8) -> Math.pow(8, 1/3)
   processedExpr = processedExpr.replace(/(\d+)√\(([^)]+)\)/g, 'Math.pow($2, 1/$1)')
@@ -76,9 +100,12 @@ function evaluateExpression(expr: string): number {
 function decimalToFraction(decimal: number): string {
   if (Number.isInteger(decimal)) return decimal.toString()
   
+  const isNegative = decimal < 0
+  const absDecimal = Math.abs(decimal)
+  
   const tolerance = 1.0E-6
   let h1 = 1, h2 = 0, k1 = 0, k2 = 1
-  let b = decimal
+  let b = absDecimal
   
   do {
     const a = Math.floor(b)
@@ -89,9 +116,34 @@ function decimalToFraction(decimal: number): string {
     k1 = a * k1 + k2
     k2 = aux
     b = 1 / (b - a)
-  } while (Math.abs(decimal - h1 / k1) > decimal * tolerance)
+  } while (Math.abs(absDecimal - h1 / k1) > absDecimal * tolerance)
   
-  return `${h1}/${k1}`
+  let result = ""
+  
+  // Convert improper fraction to mixed number if numerator > denominator
+  if (h1 > k1) {
+    const whole = Math.floor(h1 / k1)
+    const remainder = h1 % k1
+    if (remainder === 0) {
+      result = whole.toString()
+    } else {
+      result = `${whole} ${remainder}/${k1}`
+    }
+  } else {
+    result = `${h1}/${k1}`
+  }
+  
+  return isNegative ? `-${result}` : result
+}
+
+export function formatExponents(text: string): string {
+  const superscripts = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹']
+  return text.replace(/\^(-?\d+)/g, (match, exponent) => {
+    return exponent.split('').map((char: string) => {
+      if (char === '-') return '⁻'
+      return superscripts[parseInt(char)] || char
+    }).join('')
+  })
 }
 
 export function calculate(state: CalcState): CalcState {
@@ -113,12 +165,19 @@ export function calculate(state: CalcState): CalcState {
     return { ...state, current: "Error", expression: "", previous: "" }
   }
   
-  const resultStr = state.showFraction ? decimalToFraction(result) : String(result)
+  // Round to 10 decimal places to fix floating point precision issues
+  const roundedResult = Math.round(result * 10000000000) / 10000000000
+  
+  const resultStr = state.showFraction ? decimalToFraction(roundedResult) : String(roundedResult)
+  
+  // Clean up previous expression display and format exponents
+  let cleanPrevious = fullExpression.replace(/^0\s*-\s*/, '-')
+  cleanPrevious = formatExponents(cleanPrevious) + " ="
   
   return {
     expression: "",
-    current: resultStr,
-    previous: fullExpression + " =",
+    current: formatExponents(resultStr),
+    previous: cleanPrevious,
     showFraction: state.showFraction,
   }
 }

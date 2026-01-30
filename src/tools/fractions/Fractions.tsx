@@ -15,6 +15,15 @@ export default function Fractions() {
   const [result, setResult] = useState<string>("—")
 
   function parseFraction() {
+    // Handle mixed numbers (e.g., "2 3/4")
+    if (input.includes(" ") && input.includes("/")) {
+      const parts = input.split(" ")
+      const whole = Number(parts[0])
+      const [n, d] = parts[1].split("/").map(Number)
+      const [ni, di] = toImproperFraction(whole, n, d)
+      return [ni, di]
+    }
+    // Handle regular fractions (e.g., "3/4")
     if (input.includes("/")) {
       const [n, d] = input.split("/").map(Number)
       return [n, d]

@@ -7,6 +7,7 @@ import {
   inputDigit,
   inputDecimal,
   inputFraction,
+  inputMixedNumber,
   inputParenthesis,
   inputCustomRoot,
   inputPi,
@@ -18,11 +19,13 @@ import {
   square,
   backspace,
   toggleFractionMode,
+  formatExponents,
 } from "./calc"
 
 export default function Calculator() {
   const [state, setState] = useState(createInitialState())
   const [scientific, setScientific] = useState(false)
+  const [fractionInputMode, setFractionInputMode] = useState(false)
 
   const displayRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -127,7 +130,7 @@ export default function Calculator() {
 
       <div className="glass rounded-2xl p-5 space-y-3">
         <div className="text-sm text-[rgb(var(--muted))] min-h-[1.25rem]">
-          {state.previous || state.expression}
+          {formatExponents(state.previous || state.expression)}
         </div>
 
         <div className="flex items-center justify-between w-full" ref={containerRef}>
@@ -136,10 +139,10 @@ export default function Calculator() {
             ref={displayRef}
             // no inline fontSize here; JS controls it
           >
-            {state.showFraction && state.current.includes("/") ? (
+            {state.showFraction && (state.current.includes("/") || state.current.includes(" ")) ? (
               <FractionDisplay result={state.current} />
             ) : (
-              state.current
+              formatExponents(state.current)
             )}
           </div>
 
@@ -154,16 +157,36 @@ export default function Calculator() {
 
       <Keypad
         scientific={scientific}
+        fractionInputMode={fractionInputMode}
         onDigit={(d) => setState((s) => inputDigit(s, d))}
         onDecimal={() => setState((s) => inputDecimal(s))}
-        onFraction={() => setState((s) => inputFraction(s))}
+        onFraction={() => {
+          setState((s) => inputFraction(s))
+          setFractionInputMode(true)
+        }}
+        onMixedNumber={() => {
+          setState((s) => inputMixedNumber(s))
+          setFractionInputMode(true)
+        }}
         onParenthesis={(p) => setState((s) => inputParenthesis(s, p))}
         onCustomRoot={() => setState((s) => inputCustomRoot(s))}
         onPi={() => setState((s) => inputPi(s))}
-        onOperator={(o) => setState((s) => setOperator(s, o))}
-        onPower={() => setState((s) => setOperator(s, "^"))}
-        onEquals={() => setState((s) => calculate(s))}
-        onClear={() => setState(clear())}
+        onOperator={(o) => {
+          setState((s) => setOperator(s, o))
+          setFractionInputMode(false)
+        }}
+        onPower={() => {
+          setState((s) => setOperator(s, "^"))
+          setFractionInputMode(false)
+        }}
+        onEquals={() => {
+          setState((s) => calculate(s))
+          setFractionInputMode(false)
+        }}
+        onClear={() => {
+          setState(clear())
+          setFractionInputMode(false)
+        }}
         onBackspace={() => setState((s) => backspace(s))}
         onSqrt={() => setState((s) => ({ ...s, current: sqrt(s.current) }))}
         onCbrt={() => setState((s) => ({ ...s, current: cbrt(s.current) }))}

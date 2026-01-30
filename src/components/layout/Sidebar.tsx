@@ -35,7 +35,7 @@ interface Props {
 
 export default function Sidebar({ active, onSelect }: Props) {
   return (
-    <aside className="sidebar-gradient rounded-xl p-4 space-y-2">
+    <aside className="sidebar-gradient rounded-xl p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-2rem)]">
       {items.map(({ id, label, icon: Icon }) => {
         const isActive = active === id
 

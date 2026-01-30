@@ -3,9 +3,11 @@ import Key from "./Key"
 
 interface Props {
   scientific: boolean
+  fractionInputMode: boolean
   onDigit: (d: string) => void
   onDecimal: () => void
   onFraction: () => void
+  onMixedNumber: () => void
   onParenthesis: (p: string) => void
   onCustomRoot: () => void
   onPi: () => void
@@ -62,9 +64,18 @@ export default function Keypad(props: Props) {
       <Key label="=" onClick={props.onEquals} className="btn-equals rounded-full px-4 py-3" />
 
       {/* Row 5 */}
-      <Key label="0" wide onClick={() => props.onDigit("0")} />
+      <Key label="0" onClick={() => props.onDigit("0")} />
       <Key label="." onClick={props.onDecimal} />
-      <Key label="a/b" onClick={props.onFraction} className="btn-secondary text-xs rounded-full px-4 py-3" />
+      <Key 
+        label="a b/c" 
+        onClick={props.onMixedNumber} 
+        className={`btn-secondary text-xs rounded-full px-4 py-3 ${props.fractionInputMode ? "bg-black/5 dark:bg-white/10" : ""}`} 
+      />
+      <Key 
+        label="a/b" 
+        onClick={props.onFraction} 
+        className={`btn-secondary text-xs rounded-full px-4 py-3 ${props.fractionInputMode ? "bg-black/5 dark:bg-white/10" : ""}`} 
+      />
     </div>
   )
 }

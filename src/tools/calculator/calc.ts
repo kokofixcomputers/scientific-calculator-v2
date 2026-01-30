@@ -38,8 +38,8 @@ export function clear(): CalcState {
 }
 
 export function setOperator(state: CalcState, op: Operator): CalcState {
-  // Handle negative numbers at start or after operators
-  if (op === "-" && (state.current === "0" || state.expression.endsWith(" "))) {
+  // Handle negative numbers at start or after operators, but not when we have fractions/mixed numbers
+  if (op === "-" && (state.current === "0" || state.expression.endsWith(" ")) && !state.current.includes("/") && !state.current.includes(" ")) {
     return { ...state, current: "-" }
   }
   

@@ -38,14 +38,21 @@ export function clear(): CalcState {
 }
 
 export function setOperator(state: CalcState, op: Operator): CalcState {
-  // Handle negative numbers at start or after operators, but not when we have fractions/mixed numbers
-  if (op === "-" && (state.current === "0" || state.expression.endsWith(" ")) && !state.current.includes("/") && !state.current.includes(" ")) {
+  // Handle negative numbers only at start (current is "0") and not when we have fractions/mixed numbers
+  if (op === "-" && state.current === "0" && !state.current.includes("/") && !state.current.includes(" ")) {
     return { ...state, current: "-" }
   }
   
   // For power operator, keep building in current instead of moving to expression
   if (op === "^") {
     return { ...state, current: state.current + "^" }
+  }
+  
+  // If current contains unmatched opening parentheses, keep building in current
+  const openParens = (state.current.match(/\(/g) || []).length
+  const closeParens = (state.current.match(/\)/g) || []).length
+  if (openParens > closeParens) {
+    return { ...state, current: state.current + " " + op + " " }
   }
   
   return {

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react"
 import ResultDisplay from "../../components/ResultDisplay"
-import { primeFactorization } from "./calc"
+import { solveEquation } from "./calc"
 import { useToolContext } from "../../contexts/ToolContext"
 
-export default function PrimeFactorization() {
+export default function SolveFor() {
   const [input, setInput] = useState("")
   const [result, setResult] = useState<string>("—")
   const { consumePendingValue } = useToolContext()
@@ -13,31 +13,29 @@ export default function PrimeFactorization() {
     if (pending) setInput(pending)
   }, [])
 
-  function calculate() {
-    const num = parseInt(input)
-    if (isNaN(num) || num < 2) return
-    
-    const factors = primeFactorization(num)
-    setResult(factors.join(" × "))
+  function handleSolve() {
+    if (!input.trim()) return
+    const solution = solveEquation(input)
+    setResult(solution)
   }
 
   return (
     <div className="card space-y-8 max-w-xl mx-auto">
       <div>
-        <h2>Prime Factorization</h2>
-        <span className="badge-secondary ui-red">Factor Analysis</span>
+        <h2>Solve For Variable</h2>
+        <span className="badge-secondary ui-blue">Linear Equations</span>
       </div>
 
       <input
         className="form-input"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder="Enter a number"
-        type="number"
+        placeholder="e.g. -10 + 10s = 60"
+        onKeyDown={(e) => e.key === 'Enter' && handleSolve()}
       />
 
-      <button className="btn-accent" onClick={calculate}>
-        Find Prime Factors
+      <button className="btn-accent w-full" onClick={handleSolve}>
+        Solve
       </button>
 
       <ResultDisplay value={result} />

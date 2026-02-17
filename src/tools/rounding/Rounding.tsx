@@ -1,11 +1,12 @@
-import { useState } from "react"
-import CopyButton from "../../components/CopyButton"
+import { useState, useEffect } from "react"
+import ResultDisplay from "../../components/ResultDisplay"
 import {
   roundToPlace,
   roundToDecimals,
   roundToMultiple,
   type RoundingMode,
 } from "./calc"
+import { useToolContext } from "../../contexts/ToolContext"
 
 export default function Rounding() {
   const [value, setValue] = useState("")
@@ -13,6 +14,12 @@ export default function Rounding() {
   const [place, setPlace] = useState(1)
   const [decimals, setDecimals] = useState(0)
   const [multiple, setMultiple] = useState("")
+  const { consumePendingValue } = useToolContext()
+
+  useEffect(() => {
+    const pending = consumePendingValue()
+    if (pending) setValue(pending)
+  }, [])
 
   const numberValue = Number(value)
 
@@ -118,17 +125,7 @@ export default function Rounding() {
         </div>
       )}
 
-      {/* Result */}
-      <div className="glass rounded-lg p-4 text-lg font-mono">
-        <div className="flex items-center justify-between">
-          <span className="flex-1">
-            {result === "" || Number.isNaN(result)
-              ? "—"
-              : result}
-          </span>
-          <CopyButton value={result === "" || Number.isNaN(result) ? "—" : String(result)} />
-        </div>
-      </div>
+      <ResultDisplay value={result === "" || Number.isNaN(result) ? "—" : String(result)} />
     </div>
   )
 }

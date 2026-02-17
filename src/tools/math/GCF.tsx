@@ -1,11 +1,18 @@
-import { useState } from "react"
-import CopyButton from "../../components/CopyButton"
+import { useState, useEffect } from "react"
+import ResultDisplay from "../../components/ResultDisplay"
 import { Plus, X } from "lucide-react"
 import { gcfMultiple } from "./calc"
+import { useToolContext } from "../../contexts/ToolContext"
 
 export default function GCF() {
   const [numbers, setNumbers] = useState<string[]>(["", ""])
   const [result, setResult] = useState<string>("—")
+  const { consumePendingValue } = useToolContext()
+
+  useEffect(() => {
+    const pending = consumePendingValue()
+    if (pending) setNumbers([pending, ""])
+  }, [])
 
   function addNumber() {
     setNumbers([...numbers, ""])
@@ -73,12 +80,7 @@ export default function GCF() {
         </button>
       </div>
 
-      <div className="glass rounded-lg p-4 font-mono text-lg">
-        <div className="flex items-center justify-between">
-          <span className="flex-1">{result}</span>
-          <CopyButton value={result} />
-        </div>
-      </div>
+      <ResultDisplay value={result} />
     </div>
   )
 }

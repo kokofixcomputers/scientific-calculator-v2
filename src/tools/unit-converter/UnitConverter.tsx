@@ -1,12 +1,19 @@
-import { useState } from "react"
-import CopyButton from "../../components/CopyButton"
+import { useState, useEffect } from "react"
+import ResultDisplay from "../../components/ResultDisplay"
 import { groups, convert, convertTemperature } from "./calc"
+import { useToolContext } from "../../contexts/ToolContext"
 
 export default function UnitConverter() {
   const [group, setGroup] = useState("length")
   const [value, setValue] = useState("")
   const [from, setFrom] = useState("")
   const [to, setTo] = useState("")
+  const { consumePendingValue } = useToolContext()
+
+  useEffect(() => {
+    const pending = consumePendingValue()
+    if (pending) setValue(pending)
+  }, [])
 
   const numeric = Number(value)
   let result: string = "—"
@@ -61,12 +68,7 @@ export default function UnitConverter() {
         </select>
       </div>
 
-      <div className="glass rounded-lg p-4 font-mono text-lg">
-        <div className="flex items-center justify-between">
-          <span className="flex-1">{result}</span>
-          <CopyButton value={result} />
-        </div>
-      </div>
+      <ResultDisplay value={result} />
     </div>
   )
 }

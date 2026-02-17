@@ -1,10 +1,17 @@
-import { useState } from "react"
-import CopyButton from "../../components/CopyButton"
+import { useState, useEffect } from "react"
+import ResultDisplay from "../../components/ResultDisplay"
 import { listFactors } from "./calc"
+import { useToolContext } from "../../contexts/ToolContext"
 
 export default function ListFactors() {
   const [input, setInput] = useState("")
   const [result, setResult] = useState<string>("—")
+  const { consumePendingValue } = useToolContext()
+
+  useEffect(() => {
+    const pending = consumePendingValue()
+    if (pending) setInput(pending)
+  }, [])
 
   function calculate() {
     const num = parseInt(input)
@@ -33,12 +40,7 @@ export default function ListFactors() {
         List All Factors
       </button>
 
-      <div className="glass rounded-lg p-4 font-mono text-lg">
-        <div className="flex items-center justify-between">
-          <span className="flex-1">{result}</span>
-          <CopyButton value={result} />
-        </div>
-      </div>
+      <ResultDisplay value={result} />
     </div>
   )
 }

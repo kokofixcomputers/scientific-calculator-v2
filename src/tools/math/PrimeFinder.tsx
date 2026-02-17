@@ -1,10 +1,17 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import CopyButton from "../../components/CopyButton"
 import { findPrimes } from "./calc"
+import { useToolContext } from "../../contexts/ToolContext"
 
 export default function PrimeFinder() {
   const [input, setInput] = useState("")
   const [result, setResult] = useState<string>("—")
+  const { consumePendingValue } = useToolContext()
+
+  useEffect(() => {
+    const pending = consumePendingValue()
+    if (pending) setInput(pending)
+  }, [])
 
   function calculate() {
     const limit = parseInt(input)
@@ -39,7 +46,7 @@ export default function PrimeFinder() {
 
       <div className="glass rounded-lg p-4 font-mono text-lg max-h-40 overflow-y-auto">
         <div className="flex items-start justify-between gap-2">
-          <span className="flex-1">{result}</span>
+          <span className="flex-1 break-words">{result}</span>
           <CopyButton value={result} className="flex-shrink-0" />
         </div>
       </div>

@@ -61,7 +61,7 @@ function tokenize(expr: string, variable: string, allVars: string[]): string[] {
   for (let i = 0; i < expr.length; i++) {
     const char = expr[i]
     
-    if (char === '+' || char === '-') {
+    if (char === '+' || (char === '-' && i > 0)) {
       if (current) tokens.push(current)
       current = char
     } else {
@@ -95,7 +95,13 @@ function evaluateTokens(tokens: string[], variable: string): { varCoeff: number;
     } else if (term.match(/^\d+\.?\d*$/)) {
       constant += sign * parseFloat(term)
     } else {
-      return null
+      // Handle coefficient with variable like "9t"
+      const match = term.match(/^(\d+\.?\d*)([a-zA-Z])$/)
+      if (match && match[2] === variable) {
+        varCoeff += sign * parseFloat(match[1])
+      } else {
+        return null
+      }
     }
   }
 

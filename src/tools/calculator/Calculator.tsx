@@ -36,6 +36,20 @@ export default function Calculator() {
     function handleKeyDown(event: KeyboardEvent) {
       const key = event.key
 
+      // Handle paste
+      if ((event.ctrlKey || event.metaKey) && key === 'v') {
+        event.preventDefault()
+        navigator.clipboard.readText()
+          .then(text => {
+            const cleaned = text.trim()
+            if (cleaned) {
+              setState(s => ({ ...s, current: cleaned }))
+            }
+          })
+          .catch(() => {})
+        return
+      }
+
       if (/[0-9+\-*/.=()]/.test(key) || key === "Enter" || key === "Backspace" || key === "Escape") {
         event.preventDefault()
       }

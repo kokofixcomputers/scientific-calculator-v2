@@ -41,8 +41,8 @@ export default function App() {
           <div className="max-w-4xl mx-auto md:grid md:grid-cols-[220px_1fr]">
             {/* Sidebar */}
             <div className={`${
-              sidebarOpen ? "fixed left-0 top-16 bottom-0 w-64 z-50 p-4" : "hidden"
-            } md:block md:static md:p-0`}>
+              sidebarOpen ? "fixed inset-0 z-50 p-4 bg-[rgb(var(--bg))]" : "hidden"
+            } md:block md:static md:p-0 md:bg-transparent`}>
               <Sidebar active={activeTool} onSelect={(id) => {
                 setActiveTool(id)
                 setSidebarOpen(false)

@@ -4,6 +4,9 @@ import {
   roundToPlace,
   roundToDecimals,
   roundToMultiple,
+  parseFractionOrMixed,
+  decimalToFraction,
+  decimalToMixedNumber,
   type RoundingMode,
 } from "./calc"
 import { useToolContext } from "../../contexts/ToolContext"
@@ -14,6 +17,7 @@ export default function Rounding() {
   const [place, setPlace] = useState(1)
   const [decimals, setDecimals] = useState(0)
   const [multiple, setMultiple] = useState("")
+  const [outputFormat, setOutputFormat] = useState<"decimal" | "fraction" | "mixed">("decimal")
   const { consumePendingValue } = useToolContext()
 
   useEffect(() => {
@@ -21,23 +25,39 @@ export default function Rounding() {
     if (pending) setValue(pending)
   }, [])
 
-  const numberValue = Number(value)
+  // Parse input - supports fractions, mixed numbers, and decimals
+  const parsedValue = parseFractionOrMixed(value)
 
   let result: number | string = ""
 
-  if (value !== "" && !isNaN(numberValue)) {
+  if (parsedValue !== null) {
+    let roundedValue: number
     if (mode === "place") {
-      result = roundToPlace(numberValue, place)
-    }
-    if (mode === "decimal") {
-      result = roundToDecimals(numberValue, decimals)
-    }
-    if (mode === "multiple") {
+      roundedValue = roundToPlace(parsedValue, place)
+    } else if (mode === "decimal") {
+      roundedValue = roundToDecimals(parsedValue, decimals)
+    } else {
       const m = Number(multiple)
-      result =
+      roundedValue =
         multiple === "" || isNaN(m)
-          ? ""
-          : roundToMultiple(numberValue, m)
+          ? NaN
+          : roundToMultiple(parsedValue, m)
+    }
+
+    if (!isNaN(roundedValue)) {
+      if (outputFormat === "decimal") {
+        result = roundedValue
+      } else if (outputFormat === "fraction") {
+        const [n, d] = decimalToFraction(roundedValue)
+        result = `${n}/${d}`
+      } else {
+        const [w, n, d] = decimalToMixedNumber(roundedValue)
+        if (n === 0) {
+          result = w
+        } else {
+          result = `${w} ${n}/${d}`
+        }
+      }
     }
   }
 
@@ -55,8 +75,22 @@ export default function Rounding() {
           className="form-input"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="Enter a number"
+          placeholder="e.g. 2 3/5, 3/4, 5.67"
         />
+      </div>
+
+      {/* Output format selector */}
+      <div className="form-group">
+        <label className="form-label">Output format</label>
+        <select
+          className="form-input"
+          value={outputFormat}
+          onChange={(e) => setOutputFormat(e.target.value as any)}
+        >
+          <option value="decimal">Decimal</option>
+          <option value="fraction">Fraction</option>
+          <option value="mixed">Mixed Number</option>
+        </select>
       </div>
 
       {/* Mode selector */}

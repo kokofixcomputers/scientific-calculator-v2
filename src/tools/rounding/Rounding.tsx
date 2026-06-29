@@ -32,7 +32,9 @@ export default function Rounding() {
 
   if (parsedValue !== null) {
     let roundedValue: number
-    if (mode === "place") {
+    if (mode === "whole") {
+      roundedValue = Math.round(parsedValue)
+    } else if (mode === "place") {
       roundedValue = roundToPlace(parsedValue, place)
     } else if (mode === "decimal") {
       roundedValue = roundToDecimals(parsedValue, decimals)
@@ -101,6 +103,7 @@ export default function Rounding() {
           value={mode}
           onChange={(e) => setMode(e.target.value as RoundingMode)}
         >
+          <option value="whole">Round to nearest whole number</option>
           <option value="place">Round to place value</option>
           <option value="decimal">Round to decimal places</option>
           <option value="multiple">Round to nearest multiple</option>
@@ -116,7 +119,7 @@ export default function Rounding() {
             value={place}
             onChange={(e) => setPlace(Number(e.target.value))}
           >
-            <option value={1}>Ones</option>
+            <option value={1}>Ones (whole number)</option>
             <option value={10}>Tens</option>
             <option value={100}>Hundreds</option>
             <option value={1000}>Thousands</option>

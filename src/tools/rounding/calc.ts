@@ -1,4 +1,4 @@
-export type RoundingMode = "place" | "decimal" | "multiple"
+export type RoundingMode = "place" | "decimal" | "multiple" | "whole"
 
 /**
  * Parse a mixed number (e.g., "2 3/5") or fraction (e.g., "3/5") to decimal

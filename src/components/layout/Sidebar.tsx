@@ -29,7 +29,8 @@ const items: { id: ToolId; label: string; icon: any }[] = [
   { id: "time-calculator", label: "Time Calculator", icon: Clock },
   { id: "one-step-equation", label: "One Step Equation", icon: RedoDot },
   { id: "solve-for", label: "Solve For Variable", icon: Variable },
-  { id: "perfect-square", label: "Perfect Square Finder", icon: Square }
+  { id: "perfect-square", label: "Perfect Square Finder", icon: Square },
+  { id: "ratio", label: "Ratio Calculator", icon: Divide }
 ]
 
 interface Props {

@@ -17,6 +17,7 @@ import TimeCalculator from "./tools/time/TimeCalculator.tsx"
 import OneStepEquation from "./tools/oneStepEquation/OneStepEquation.tsx"
 import SolveFor from "./tools/solveFor/SolveFor.tsx"
 import PerfectSquare from "./tools/perfectSquare/PerfectSquare.tsx"
+import Ratio from "./tools/ratio/Ratio.tsx"
 
 import type { ToolId } from "./tools/types"
 
@@ -64,6 +65,7 @@ export default function App() {
               {activeTool === "one-step-equation" && <OneStepEquation />}
               {activeTool === "solve-for" && <SolveFor />}
               {activeTool === "perfect-square" && <PerfectSquare />}
+              {activeTool === "ratio" && <Ratio />}
             </div>
           </div>
         </div>

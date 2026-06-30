@@ -28,6 +28,16 @@ export function solveEquation(equation: string): string {
   return trySolveFor(left, right, variable, [variable])
 }
 
+function parseFraction(value: string): number | null {
+  if (value.includes('/')) {
+    const [num, denom] = value.split('/').map(Number)
+    if (isNaN(num) || isNaN(denom) || denom === 0) return null
+    return num / denom
+  }
+  const num = parseFloat(value)
+  return isNaN(num) ? null : num
+}
+
 function trySolveFor(left: string, right: string, variable: string, allVars: string[]): string {
   try {
     const leftVal = parseExpression(left, variable, allVars)
@@ -92,15 +102,29 @@ function evaluateTokens(tokens: string[], variable: string): { varCoeff: number;
       constant += sign * result.constant
     } else if (term === variable) {
       varCoeff += sign
-    } else if (term.match(/^\d+\.?\d*$/)) {
-      constant += sign * parseFloat(term)
     } else {
-      // Handle coefficient with variable like "9t"
-      const match = term.match(/^(\d+\.?\d*)([a-zA-Z])$/)
-      if (match && match[2] === variable) {
-        varCoeff += sign * parseFloat(match[1])
+      // Try to parse as fraction first
+      const fracValue = parseFraction(term)
+      if (fracValue !== null) {
+        constant += sign * fracValue
       } else {
-        return null
+        // Handle coefficient with variable like "9t"
+        const match = term.match(/^(\d+\.?\d*\/\d+\.?\d*)([a-zA-Z])$/)
+        if (match && match[2] === variable) {
+          const coeff = parseFraction(match[1])
+          if (coeff !== null) {
+            varCoeff += sign * coeff
+          } else {
+            return null
+          }
+        } else {
+          const decimalMatch = term.match(/^(\d+\.?\d*)([a-zA-Z])$/)
+          if (decimalMatch && decimalMatch[2] === variable) {
+            varCoeff += sign * parseFloat(decimalMatch[1])
+          } else {
+            return null
+          }
+        }
       }
     }
   }
@@ -127,8 +151,8 @@ function evaluateTerm(term: string, variable: string): { varCoeff: number; const
       if (op === '*') isVar = true
       else return null // Can't divide by variable
     } else {
-      const num = parseFloat(part)
-      if (isNaN(num)) return null
+      const num = parseFraction(part)
+      if (num === null) return null
       value = op === '*' ? value * num : value / num
     }
   }

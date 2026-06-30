@@ -41,3 +41,12 @@ export function fractionToDecimal(n: number, d: number): number {
 export function fractionToPercent(n: number, d: number): number {
   return fractionToDecimal(n, d) * 100
 }
+
+export function percentToFraction(percent: number): [number, number] {
+  return decimalToFraction(percent / 100)
+}
+
+export function percentToMixed(percent: number): [number, number, number] {
+  const [n, d] = percentToFraction(percent)
+  return toMixedNumber(n, d)
+}

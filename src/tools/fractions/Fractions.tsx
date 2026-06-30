@@ -8,6 +8,7 @@ import {
   toImproperFraction,
   fractionToDecimal,
   fractionToPercent,
+  percentToMixed,
 } from "./calc"
 
 export default function Fractions() {
@@ -73,6 +74,18 @@ export default function Fractions() {
     setResult(`${fractionToPercent(frac[0], frac[1])}%`)
   }
 
+  function handlePercentToMixed() {
+    // Handle percentage input (e.g., "156%" or "156")
+    let percentValue = input.trim()
+    if (percentValue.includes("%")) {
+      percentValue = percentValue.replace("%", "")
+    }
+    const percent = Number(percentValue)
+    if (isNaN(percent)) return
+    const [w, n, d] = percentToMixed(percent)
+    setResult(`${w} ${n}/${d}`)
+  }
+
   return (
     <div className="card space-y-8 max-w-xl mx-auto">
       <div>
@@ -84,7 +97,7 @@ export default function Fractions() {
         className="form-input"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder="e.g. 0.75, 3/4, 2 1/2"
+        placeholder="e.g. 0.75, 3/4, 2 1/2, 156%"
       />
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -105,6 +118,9 @@ export default function Fractions() {
         </button>
         <button className="btn-teal" onClick={handleDecimal}>
           To Decimal
+        </button>
+        <button className="btn-blue" onClick={handlePercentToMixed}>
+          Percent to Mixed
         </button>
       </div>
 

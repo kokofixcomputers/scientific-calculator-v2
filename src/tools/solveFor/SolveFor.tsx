@@ -30,7 +30,7 @@ export default function SolveFor() {
         className="form-input"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder="e.g. -10 + 10s = 60, 115/100 = 1426/p"
+        placeholder="e.g. -10 + 10s = 60, 115/100 = 1426/p, 60 = x%*100"
         onKeyDown={(e) => e.key === 'Enter' && handleSolve()}
       />
 

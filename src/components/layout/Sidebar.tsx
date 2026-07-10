@@ -12,7 +12,8 @@ import {
   RedoDot,
   Variable,
   Square,
-  Percent
+  Percent,
+  PieChart
 } from "lucide-react"
 
 import type { ToolId } from "../../tools/types"
@@ -32,7 +33,8 @@ const items: { id: ToolId; label: string; icon: any }[] = [
   { id: "solve-for", label: "Solve For Variable", icon: Variable },
   { id: "perfect-square", label: "Perfect Square Finder", icon: Square },
   { id: "ratio", label: "Ratio Calculator", icon: Divide },
-  { id: "interest", label: "Interest Calculator", icon: Percent }
+  { id: "interest", label: "Interest Calculator", icon: Percent },
+  { id: "percent-breakdown", label: "Percent Breakdown", icon: PieChart }
 ]
 
 interface Props {

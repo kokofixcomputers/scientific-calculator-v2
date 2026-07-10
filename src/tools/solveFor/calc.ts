@@ -1,5 +1,6 @@
 export function solveEquation(equation: string): string {
   const cleaned = equation.replace(/\s+/g, '').replace(/\*/g, '*').replace(/×/g, '*')
+    .replace(/([a-zA-Z0-9.]+)%/g, '0.01*$1')
   const parts = cleaned.split('=')
   if (parts.length !== 2) return 'Invalid equation format'
 

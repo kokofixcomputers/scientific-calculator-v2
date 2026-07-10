@@ -11,7 +11,8 @@ import {
   CircleDivide,
   RedoDot,
   Variable,
-  Square
+  Square,
+  Percent
 } from "lucide-react"
 
 import type { ToolId } from "../../tools/types"
@@ -30,7 +31,8 @@ const items: { id: ToolId; label: string; icon: any }[] = [
   { id: "one-step-equation", label: "One Step Equation", icon: RedoDot },
   { id: "solve-for", label: "Solve For Variable", icon: Variable },
   { id: "perfect-square", label: "Perfect Square Finder", icon: Square },
-  { id: "ratio", label: "Ratio Calculator", icon: Divide }
+  { id: "ratio", label: "Ratio Calculator", icon: Divide },
+  { id: "interest", label: "Interest Calculator", icon: Percent }
 ]
 
 interface Props {

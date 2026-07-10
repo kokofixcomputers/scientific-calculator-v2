@@ -18,6 +18,7 @@ import OneStepEquation from "./tools/oneStepEquation/OneStepEquation.tsx"
 import SolveFor from "./tools/solveFor/SolveFor.tsx"
 import PerfectSquare from "./tools/perfectSquare/PerfectSquare.tsx"
 import Ratio from "./tools/ratio/Ratio.tsx"
+import Interest from "./tools/interest/Interest.tsx"
 
 import type { ToolId } from "./tools/types"
 
@@ -66,6 +67,7 @@ export default function App() {
               {activeTool === "solve-for" && <SolveFor />}
               {activeTool === "perfect-square" && <PerfectSquare />}
               {activeTool === "ratio" && <Ratio />}
+              {activeTool === "interest" && <Interest />}
             </div>
           </div>
         </div>

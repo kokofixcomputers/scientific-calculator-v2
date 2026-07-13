@@ -23,7 +23,8 @@ const tools: { id: ToolId; label: string }[] = [
   { id: "one-step-equation", label: "One Step Equation" },
   { id: "solve-for", label: "Solve For Variable" },
   { id: "perfect-square", label: "Perfect Square Finder" },
-  { id: "unit-rate", label: "Unit Rate" }
+  { id: "unit-rate", label: "Unit Rate" },
+  { id: "simplify", label: "Simplify Expression" }
 ]
 
 export default function ResultDisplay({ value }: Props) {

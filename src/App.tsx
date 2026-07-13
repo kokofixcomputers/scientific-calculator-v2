@@ -20,6 +20,7 @@ import PerfectSquare from "./tools/perfectSquare/PerfectSquare.tsx"
 import Ratio from "./tools/ratio/Ratio.tsx"
 import Interest from "./tools/interest/Interest.tsx"
 import PercentBreakdown from "./tools/percentBreakdown/PercentBreakdown.tsx"
+import UnitRate from "./tools/unitRate/UnitRate.tsx"
 
 import type { ToolId } from "./tools/types"
 
@@ -70,6 +71,7 @@ export default function App() {
               {activeTool === "ratio" && <Ratio />}
               {activeTool === "interest" && <Interest />}
               {activeTool === "percent-breakdown" && <PercentBreakdown />}
+              {activeTool === "unit-rate" && <UnitRate />}
             </div>
           </div>
         </div>

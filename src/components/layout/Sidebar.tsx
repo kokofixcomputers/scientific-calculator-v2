@@ -13,7 +13,8 @@ import {
   Variable,
   Square,
   Percent,
-  PieChart
+  PieChart,
+  Gauge
 } from "lucide-react"
 
 import type { ToolId } from "../../tools/types"
@@ -34,7 +35,8 @@ const items: { id: ToolId; label: string; icon: any }[] = [
   { id: "perfect-square", label: "Perfect Square Finder", icon: Square },
   { id: "ratio", label: "Ratio Calculator", icon: Divide },
   { id: "interest", label: "Interest Calculator", icon: Percent },
-  { id: "percent-breakdown", label: "Percent Breakdown", icon: PieChart }
+  { id: "percent-breakdown", label: "Percent Breakdown", icon: PieChart },
+  { id: "unit-rate", label: "Unit Rate", icon: Gauge }
 ]
 
 interface Props {

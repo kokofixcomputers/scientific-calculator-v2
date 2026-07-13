@@ -22,7 +22,8 @@ const tools: { id: ToolId; label: string }[] = [
   { id: "time-calculator", label: "Time Calculator" },
   { id: "one-step-equation", label: "One Step Equation" },
   { id: "solve-for", label: "Solve For Variable" },
-  { id: "perfect-square", label: "Perfect Square Finder" }
+  { id: "perfect-square", label: "Perfect Square Finder" },
+  { id: "unit-rate", label: "Unit Rate" }
 ]
 
 export default function ResultDisplay({ value }: Props) {

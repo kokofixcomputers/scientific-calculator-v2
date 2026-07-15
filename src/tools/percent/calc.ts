@@ -26,3 +26,23 @@ export function applyPercentChange(value: number, percent: number, direction: "i
   const factor = direction === "increase" ? 1 + percent / 100 : 1 - percent / 100
   return value * factor
 }
+
+export interface PercentItem {
+  label: string
+  value: number
+}
+
+export interface PercentBreakdownResult extends PercentItem {
+  percent: number
+}
+
+// Splits a total into each item's share, e.g. sleeping 8h / working 8h / other 8h -> 33.33% each
+export function percentBreakdown(items: PercentItem[]): PercentBreakdownResult[] {
+  const total = items.reduce((sum, item) => sum + item.value, 0)
+  if (total === 0) return items.map(item => ({ ...item, percent: 0 }))
+
+  return items.map(item => ({
+    ...item,
+    percent: (item.value / total) * 100,
+  }))
+}

@@ -1,14 +1,22 @@
 import { useState } from "react"
 import ResultDisplay from "../../components/ResultDisplay"
+import { Plus, X } from "lucide-react"
 import {
   percentOf,
   valueFromPercent,
   findWhole,
   percentChange,
   applyPercentChange,
+  percentBreakdown,
+  type PercentBreakdownResult,
 } from "./calc"
 
-type Mode = "percentOf" | "valueFromPercent" | "findWhole" | "percentChange" | "applyChange"
+type Mode = "percentOf" | "valueFromPercent" | "findWhole" | "percentChange" | "applyChange" | "breakdown"
+
+interface Row {
+  label: string
+  value: string
+}
 
 export default function Percent() {
   const [mode, setMode] = useState<Mode>("percentOf")
@@ -16,6 +24,49 @@ export default function Percent() {
   const [b, setB] = useState("")
   const [direction, setDirection] = useState<"increase" | "decrease">("increase")
   const [result, setResult] = useState<string>("—")
+
+  const [rows, setRows] = useState<Row[]>([
+    { label: "", value: "" },
+    { label: "", value: "" },
+  ])
+  const [breakdownResults, setBreakdownResults] = useState<PercentBreakdownResult[] | null>(null)
+
+  function addRow() {
+    setRows([...rows, { label: "", value: "" }])
+  }
+
+  function removeRow(index: number) {
+    if (rows.length > 2) {
+      setRows(rows.filter((_, i) => i !== index))
+    }
+  }
+
+  function updateRow(index: number, field: keyof Row, value: string) {
+    const newRows = [...rows]
+    newRows[index] = { ...newRows[index], [field]: value }
+    setRows(newRows)
+  }
+
+  const breakdownTotal = rows.reduce((sum, row) => {
+    const n = Number(row.value)
+    return sum + (isNaN(n) ? 0 : n)
+  }, 0)
+
+  function calculateBreakdown() {
+    const items = rows
+      .map((row, i) => ({
+        label: row.label.trim() || `Item ${i + 1}`,
+        value: Number(row.value),
+      }))
+      .filter(item => !isNaN(item.value) && item.value >= 0)
+
+    if (items.length < 2) {
+      setBreakdownResults(null)
+      return
+    }
+
+    setBreakdownResults(percentBreakdown(items))
+  }
 
   function calculate() {
     const numA = Number(a)
@@ -55,6 +106,10 @@ export default function Percent() {
     }
   }
 
+  const breakdownSummary = breakdownResults
+    ? breakdownResults.map(r => `${r.label}: ${r.percent.toFixed(2)}%`).join("  |  ")
+    : "—"
+
   return (
     <div className="card space-y-8 max-w-xl mx-auto">
       <div>
@@ -68,6 +123,7 @@ export default function Percent() {
         <option value="findWhole">X is Y% of what number</option>
         <option value="percentChange">Percent change from X to Y</option>
         <option value="applyChange">Increase/decrease X by Y%</option>
+        <option value="breakdown">Breakdown: share of a total</option>
       </select>
 
       {mode === "percentOf" && (
@@ -111,11 +167,69 @@ export default function Percent() {
         </div>
       )}
 
-      <button className="btn-primary w-full" onClick={calculate}>
-        Calculate
-      </button>
+      {mode !== "breakdown" && (
+        <>
+          <button className="btn-primary w-full" onClick={calculate}>
+            Calculate
+          </button>
 
-      <ResultDisplay value={result} />
+          <ResultDisplay value={result} />
+        </>
+      )}
+
+      {mode === "breakdown" && (
+        <>
+          <div className="space-y-3">
+            {rows.map((row, index) => (
+              <div key={index} className="flex gap-2">
+                <input
+                  className="form-input flex-1"
+                  value={row.label}
+                  onChange={e => updateRow(index, "label", e.target.value)}
+                  placeholder={`Item ${index + 1} name (e.g., Sleeping)`}
+                />
+                <input
+                  className="form-input w-28"
+                  value={row.value}
+                  onChange={e => updateRow(index, "value", e.target.value)}
+                  placeholder="Hours"
+                  type="number"
+                />
+                {rows.length > 2 && (
+                  <button className="btn-danger px-3" onClick={() => removeRow(index)}>
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-3">
+            <button className="btn-secondary" onClick={addRow}>
+              <Plus size={16} className="mr-2" />
+              Add Item
+            </button>
+            <button className="btn-accent" onClick={calculateBreakdown}>
+              Calculate Percentages
+            </button>
+          </div>
+
+          {breakdownResults && (
+            <div className="space-y-2">
+              {breakdownResults.map((r, i) => (
+                <div key={i} className="flex items-center justify-between glass rounded-lg p-3">
+                  <span className="font-medium">{r.label}</span>
+                  <span className="font-mono">
+                    {r.value} / {breakdownTotal} = {r.percent.toFixed(2)}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <ResultDisplay value={breakdownSummary} />
+        </>
+      )}
     </div>
   )
 }

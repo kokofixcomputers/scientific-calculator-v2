@@ -19,7 +19,6 @@ import SolveFor from "./tools/solveFor/SolveFor.tsx"
 import PerfectSquare from "./tools/perfectSquare/PerfectSquare.tsx"
 import Ratio from "./tools/ratio/Ratio.tsx"
 import Interest from "./tools/interest/Interest.tsx"
-import PercentBreakdown from "./tools/percentBreakdown/PercentBreakdown.tsx"
 import UnitRate from "./tools/unitRate/UnitRate.tsx"
 import Simplify from "./tools/simplify/Simplify.tsx"
 import Percent from "./tools/percent/Percent.tsx"
@@ -72,7 +71,6 @@ export default function App() {
               {activeTool === "perfect-square" && <PerfectSquare />}
               {activeTool === "ratio" && <Ratio />}
               {activeTool === "interest" && <Interest />}
-              {activeTool === "percent-breakdown" && <PercentBreakdown />}
               {activeTool === "unit-rate" && <UnitRate />}
               {activeTool === "simplify" && <Simplify />}
               {activeTool === "percent" && <Percent />}

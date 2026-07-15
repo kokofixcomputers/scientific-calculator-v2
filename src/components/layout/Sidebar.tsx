@@ -13,7 +13,6 @@ import {
   Variable,
   Square,
   Percent,
-  PieChart,
   Gauge,
   Minimize2,
   Percent as PercentIcon
@@ -37,7 +36,6 @@ const items: { id: ToolId; label: string; icon: any }[] = [
   { id: "perfect-square", label: "Perfect Square Finder", icon: Square },
   { id: "ratio", label: "Ratio Calculator", icon: Divide },
   { id: "interest", label: "Interest Calculator", icon: Percent },
-  { id: "percent-breakdown", label: "Percent Breakdown", icon: PieChart },
   { id: "unit-rate", label: "Unit Rate", icon: Gauge },
   { id: "simplify", label: "Simplify Expression", icon: Minimize2 },
   { id: "percent", label: "Percent Calculator", icon: PercentIcon }

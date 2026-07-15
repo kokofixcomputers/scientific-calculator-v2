@@ -24,7 +24,8 @@ const tools: { id: ToolId; label: string }[] = [
   { id: "solve-for", label: "Solve For Variable" },
   { id: "perfect-square", label: "Perfect Square Finder" },
   { id: "unit-rate", label: "Unit Rate" },
-  { id: "simplify", label: "Simplify Expression" }
+  { id: "simplify", label: "Simplify Expression" },
+  { id: "percent", label: "Percent Calculator" }
 ]
 
 export default function ResultDisplay({ value }: Props) {

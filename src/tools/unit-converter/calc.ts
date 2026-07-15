@@ -1,26 +1,44 @@
 type UnitMap = Record<string, number>
 
+// Standard metric prefixes, including the rarely-used middle ones (hecto, deca, deci, centi)
+// that get skipped when people only remember kilo/centi/milli
+const METRIC_PREFIXES: { symbol: string; factor: number }[] = [
+  { symbol: "M", factor: 1e6 },
+  { symbol: "k", factor: 1e3 },
+  { symbol: "h", factor: 1e2 },
+  { symbol: "da", factor: 1e1 },
+  { symbol: "d", factor: 1e-1 },
+  { symbol: "c", factor: 1e-2 },
+  { symbol: "m", factor: 1e-3 },
+  { symbol: "µ", factor: 1e-6 },
+]
+
+// Builds every prefixed variant of a base metric unit (e.g. "g" -> g, kg, hg, mg, µg, ...)
+// The map stores "units per 1 base unit", matching the convention used by `convert`
+function buildMetricUnits(baseSymbol: string): UnitMap {
+  const map: UnitMap = { [baseSymbol]: 1 }
+  for (const { symbol, factor } of METRIC_PREFIXES) {
+    map[symbol + baseSymbol] = 1 / factor
+  }
+  return map
+}
+
 export const groups: Record<string, UnitMap> = {
   length: {
-    m: 1,
-    cm: 100,
-    mm: 1000,
-    km: 0.001,
+    ...buildMetricUnits("m"),
     in: 39.3701,
     ft: 3.28084,
     yd: 1.09361,
     mi: 0.000621371,
   },
   weight: {
-    kg: 1,
-    g: 1000,
-    lb: 2.20462,
-    oz: 35.274,
-    ton: 0.001,
+    ...buildMetricUnits("g"),
+    lb: 0.00220462,
+    oz: 0.035274,
+    ton: 0.000001,
   },
   volume: {
-    l: 1,
-    ml: 1000,
+    ...buildMetricUnits("l"),
     gal: 0.264172,
     qt: 1.05669,
     pt: 2.11338,

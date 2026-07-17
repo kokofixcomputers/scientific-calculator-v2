@@ -15,7 +15,8 @@ import {
   Percent,
   Gauge,
   Minimize2,
-  Percent as PercentIcon
+  Percent as PercentIcon,
+  Sigma
 } from "lucide-react"
 
 import type { ToolId } from "../../tools/types"
@@ -38,7 +39,8 @@ const items: { id: ToolId; label: string; icon: any }[] = [
   { id: "interest", label: "Interest Calculator", icon: Percent },
   { id: "unit-rate", label: "Unit Rate", icon: Gauge },
   { id: "simplify", label: "Simplify Expression", icon: Minimize2 },
-  { id: "percent", label: "Percent Calculator", icon: PercentIcon }
+  { id: "percent", label: "Percent Calculator", icon: PercentIcon },
+  { id: "unit-calculator", label: "Unit Calculator", icon: Sigma }
 ]
 
 interface Props {

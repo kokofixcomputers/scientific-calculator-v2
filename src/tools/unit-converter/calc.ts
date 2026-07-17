@@ -26,32 +26,41 @@ function buildMetricUnits(baseSymbol: string): UnitMap {
 export const groups: Record<string, UnitMap> = {
   length: {
     ...buildMetricUnits("m"),
-    in: 39.3701,
-    ft: 3.28084,
-    yd: 1.09361,
-    mi: 0.000621371,
+    // Exact international-foot definitions, so e.g. 12in + 12ft carries over to a clean 13ft
+    in: 1 / 0.0254,
+    ft: 1 / 0.3048,
+    yd: 1 / 0.9144,
+    mi: 1 / 1609.344,
   },
   weight: {
     ...buildMetricUnits("g"),
-    lb: 0.00220462,
-    oz: 0.035274,
-    ton: 0.000001,
+    // Exact avoirdupois definitions (1 lb = 453.59237 g, 1 oz = 1/16 lb)
+    lb: 1 / 453.59237,
+    oz: 1 / 28.349523125,
+    ton: 1 / 907184.74,
   },
   volume: {
     ...buildMetricUnits("l"),
-    gal: 0.264172,
-    qt: 1.05669,
-    pt: 2.11338,
-    cup: 4.22675,
-    floz: 33.814,
+    // Exact US liquid measures (1 gal = 3.785411784 L, with qt/pt/cup/floz as clean fractions of it)
+    gal: 1 / 3.785411784,
+    qt: 4 / 3.785411784,
+    pt: 8 / 3.785411784,
+    cup: 16 / 3.785411784,
+    floz: 128 / 3.785411784,
   },
   area: {
     sqm: 1,
-    sqcm: 10000,
-    sqkm: 0.000001,
-    sqft: 10.7639,
-    sqin: 1550,
-    acre: 0.000247105,
+    sqmm: 1e6,
+    sqcm: 1e4,
+    sqkm: 1e-6,
+    // Derived from the exact international-foot definitions (1 in = 0.0254 m, etc.)
+    // rather than rounded conversion factors, so e.g. 864 sqin -> sqft lands on exactly 6.
+    sqin: 1 / 0.0254 ** 2,
+    sqft: 1 / 0.3048 ** 2,
+    sqyd: 1 / 0.9144 ** 2,
+    sqmi: 1 / 1609.344 ** 2,
+    acre: 1 / 4046.8564224,
+    hectare: 1 / 10000,
   },
   speed: {
     mps: 1,
@@ -85,6 +94,11 @@ export const groups: Record<string, UnitMap> = {
   },
 }
 
+// Strips IEEE-754 float dust (e.g. 5.999999999999999) left over from chained division/multiplication
+function cleanFloat(n: number): number {
+  return Number.isFinite(n) ? Number(n.toPrecision(12)) : n
+}
+
 export function convert(
   value: number,
   from: string,
@@ -92,7 +106,7 @@ export function convert(
   group: string
 ): number {
   const map = groups[group]
-  return (value / map[from]) * map[to]
+  return cleanFloat((value / map[from]) * map[to])
 }
 
 export function convertTemperature(

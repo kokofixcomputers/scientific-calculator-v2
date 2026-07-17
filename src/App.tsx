@@ -22,6 +22,7 @@ import Interest from "./tools/interest/Interest.tsx"
 import UnitRate from "./tools/unitRate/UnitRate.tsx"
 import Simplify from "./tools/simplify/Simplify.tsx"
 import Percent from "./tools/percent/Percent.tsx"
+import UnitCalculator from "./tools/unitCalculator/UnitCalculator.tsx"
 
 import type { ToolId } from "./tools/types"
 
@@ -74,6 +75,7 @@ export default function App() {
               {activeTool === "unit-rate" && <UnitRate />}
               {activeTool === "simplify" && <Simplify />}
               {activeTool === "percent" && <Percent />}
+              {activeTool === "unit-calculator" && <UnitCalculator />}
             </div>
           </div>
         </div>

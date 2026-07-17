@@ -231,13 +231,24 @@ function formatBreakdown(baseValue: number, group: string, unitsUsed: string[]):
   }
 
   const lastUnit = units[units.length - 1]
-  parts.push({ unit: lastUnit, value: cleanNumber(remaining * map[lastUnit]) })
+  // Round the leftover to 4 decimal places - mixing units with no clean integer
+  // ratio (e.g. meters and feet) otherwise leaves 10+ digits of float noise
+  const lastValue = Math.round(remaining * map[lastUnit] * 1e4) / 1e4
+  parts.push({ unit: lastUnit, value: cleanNumber(lastValue) })
 
-  const visible = parts.filter((p, i) => p.value !== 0 || i === parts.length - 1)
+  // Drop leading zero units (e.g. "0ft 5in" -> "5in"), but keep zeros in the
+  // middle/end so a unit the user actually typed doesn't silently vanish
+  const firstNonZero = parts.findIndex(p => p.value !== 0)
+  const visible = firstNonZero === -1 ? parts.slice(-1) : parts.slice(firstNonZero)
   return sign + visible.map(p => `${p.value}${p.unit}`).join(" ")
 }
 
-export function evaluateUnitExpression(expression: string): string {
+// Rounds to 4 decimal places and strips any leftover float dust, e.g. 21.000000004 -> 21
+function formatUnitValue(n: number): number {
+  return cleanNumber(Math.round(n * 1e4) / 1e4)
+}
+
+export function evaluateUnitExpression(expression: string, outputUnit?: string): string {
   if (!expression.trim()) return "—"
 
   const tokens = tokenize(expression)
@@ -251,12 +262,21 @@ export function evaluateUnitExpression(expression: string): string {
 
     if (result.unit === null) return String(cleanNumber(result.value))
 
+    const baseValue = result.value / groups[result.group as string][result.unit]
+
+    if (outputUnit) {
+      const info = findUnit(outputUnit)
+      if (!info) return `Unrecognized unit "${outputUnit}"`
+      if (info.group !== result.group) return `Cannot express the result in "${outputUnit}" - different unit category`
+      return `${formatUnitValue(baseValue * info.factor)}${info.unit}`
+    }
+
     const unitsUsed = tokens
       .filter((t): t is Token & { type: "num" } => t.type === "num" && t.unit !== null)
       .map(t => findUnit(t.unit as string)?.unit)
       .filter((u): u is string => !!u)
 
-    return formatBreakdown(result.value / groups[result.group as string][result.unit], result.group as string, unitsUsed)
+    return formatBreakdown(baseValue, result.group as string, unitsUsed)
   } catch (e) {
     return e instanceof Error ? e.message : "Error evaluating expression"
   }

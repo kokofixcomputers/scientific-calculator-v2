@@ -36,6 +36,7 @@ export default function UnitCalculator() {
     { op: "+", value: "", unit: Object.keys(groups.length)[0] },
     { op: "+", value: "", unit: Object.keys(groups.length)[0] },
   ])
+  const [outputUnit, setOutputUnit] = useState("")
   const [result, setResult] = useState<string>("—")
   const { consumePendingValue } = useToolContext()
 
@@ -50,6 +51,7 @@ export default function UnitCalculator() {
     setCategory(next)
     const firstUnit = Object.keys(groups[next])[0]
     setRows(rows.map(row => ({ ...row, unit: firstUnit })))
+    setOutputUnit("")
   }
 
   function addRow() {
@@ -77,7 +79,7 @@ export default function UnitCalculator() {
       expr += expr ? `${row.op}${term}` : term
     }
 
-    setResult(expr ? evaluateUnitExpression(expr) : "—")
+    setResult(expr ? evaluateUnitExpression(expr, outputUnit || undefined) : "—")
   }
 
   return (
@@ -139,6 +141,18 @@ export default function UnitCalculator() {
         <button className="btn-accent" onClick={calculate}>
           Calculate
         </button>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span className="text-sm opacity-60 whitespace-nowrap">Output as</span>
+        <select
+          className="form-input"
+          value={outputUnit}
+          onChange={e => setOutputUnit(e.target.value)}
+        >
+          <option value="">Auto (mixed units)</option>
+          {units.map(u => <option key={u} value={u}>{u} only</option>)}
+        </select>
       </div>
 
       <ResultDisplay value={result} />

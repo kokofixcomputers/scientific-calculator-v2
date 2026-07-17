@@ -47,6 +47,9 @@ export const groups: Record<string, UnitMap> = {
     pt: 8 / 3.785411784,
     cup: 16 / 3.785411784,
     floz: 128 / 3.785411784,
+    // 1 floz = 2 tbsp = 6 tsp exactly (US), so 1 gal = 256 tbsp = 768 tsp
+    tbsp: 256 / 3.785411784,
+    tsp: 768 / 3.785411784,
   },
   area: {
     sqm: 1,

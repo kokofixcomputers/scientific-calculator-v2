@@ -39,8 +39,12 @@ export function clear(): CalcState {
 
 export function setOperator(state: CalcState, op: Operator): CalcState {
   // Handle negative numbers only at start (current is "0") and not when we have fractions/mixed numbers
-  if (op === "-" && state.current === "0" && !state.current.includes("/") && !state.current.includes(" ")) {
-    return { ...state, current: "-" }
+  // Also allow unary minus immediately after a '^' so users can enter negative exponents like 10^-4
+  if (op === "-") {
+    const canStartNegative = state.current === "0" && !state.current.includes("/") && !state.current.includes(" ")
+    const afterExponent = state.current.endsWith("^")
+    if (canStartNegative) return { ...state, current: "-" }
+    if (afterExponent) return { ...state, current: state.current + "-" }
   }
   
   // For power operator, keep building in current instead of moving to expression
@@ -95,6 +99,19 @@ function evaluateExpression(expr: string): number {
   processedExpr = processedExpr.replace(/(\d)\(/g, '$1*(')
   processedExpr = processedExpr.replace(/\)(\d)/g, ')*$1')
   processedExpr = processedExpr.replace(/\)\(/g, ')*(')
+
+  // Wrap negative bases used with the exponent operator so JS's exponentiation (**) syntax is valid.
+  // In JS, "-10**2" is a SyntaxError; we need to transform "-10^2" -> "(-10)^2" before replacing ^ with **.
+  processedExpr = processedExpr.replace(/(^|[^0-9A-Za-z_])-(\d+(?:\.\d+)?|\([^)]*\))\s*\^/g, '$1(-$2)^')
+
+  // Also ensure negative exponents are okay: turn "^ -4" or "^-4" into "^(-4)" so JS handles it correctly.
+  processedExpr = processedExpr.replace(/\^(?:\s*)-?(\d+(?:\.\d+)?|\([^)]*\))/g, (m) => {
+    // if it's already parenthesized like ^( -4 ) leave it
+    if (/^\^\(.*\)$/.test(m)) return m
+    // extract the number part
+    const num = m.replace(/^\^\s*/, '')
+    return '^(' + num + ')'
+  })
   
   try {
     // Use Function constructor for safe evaluation with order of operations

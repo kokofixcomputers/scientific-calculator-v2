@@ -8,15 +8,20 @@ import {
   ratioToDecimal,
   ratioToPercent,
   compareRatios,
+  splitTotalByRatio,
+  findOtherPart,
 } from "./calc"
 
 export default function Ratio() {
-  const [mode, setMode] = useState<"simplify" | "missing" | "scale" | "decimal" | "percent" | "compare">("simplify")
+  const [mode, setMode] = useState<"simplify" | "missing" | "scale" | "decimal" | "percent" | "compare" | "splitTotal" | "findOther">("simplify")
   const [a, setA] = useState("")
   const [b, setB] = useState("")
   const [c, setC] = useState("")
   const [d, setD] = useState("")
   const [factor, setFactor] = useState("")
+  const [total, setTotal] = useState("")
+  const [knownValue, setKnownValue] = useState("")
+  const [knownIsA, setKnownIsA] = useState(true)
   const [result, setResult] = useState<string>("—")
 
   function calculate() {
@@ -25,6 +30,8 @@ export default function Ratio() {
     const numC = Number(c)
     const numD = Number(d)
     const numFactor = Number(factor)
+    const numTotal = Number(total)
+    const numKnownValue = Number(knownValue)
 
     switch (mode) {
       case "simplify": {
@@ -37,6 +44,18 @@ export default function Ratio() {
         if (isNaN(numA) || isNaN(numB) || isNaN(numC)) return
         const missing = findMissingValue(numA, numB, numC)
         setResult(String(missing))
+        break
+      }
+      case "splitTotal": {
+        if (isNaN(numA) || isNaN(numB) || isNaN(numTotal)) return
+        const [partA, partB] = splitTotalByRatio(numA, numB, numTotal)
+        setResult(`${partA} and ${partB}`)
+        break
+      }
+      case "findOther": {
+        if (isNaN(numA) || isNaN(numB) || isNaN(numKnownValue)) return
+        const other = findOtherPart(numA, numB, numKnownValue, knownIsA)
+        setResult(String(other))
         break
       }
       case "scale": {
@@ -72,7 +91,9 @@ export default function Ratio() {
 
       <select className="form-input" value={mode} onChange={e => setMode(e.target.value as any)}>
         <option value="simplify">Simplify Ratio</option>
-        <option value="missing">Find Missing Value</option>
+        <option value="missing">Solve a Proportion (A:B = C:?)</option>
+        <option value="splitTotal">Split a Total by Ratio</option>
+        <option value="findOther">Given One Part, Find the Other</option>
         <option value="scale">Scale Ratio</option>
         <option value="decimal">Ratio to Decimal</option>
         <option value="percent">Ratio to Percent</option>
@@ -97,25 +118,96 @@ export default function Ratio() {
       )}
 
       {mode === "missing" && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <p className="text-sm opacity-60">Solves the proportion below for the missing 4th value</p>
+          <div className="flex items-center gap-2">
+            <input
+              className="form-input"
+              value={a}
+              onChange={e => setA(e.target.value)}
+              placeholder="10"
+            />
+            <span className="opacity-60">:</span>
+            <input
+              className="form-input"
+              value={b}
+              onChange={e => setB(e.target.value)}
+              placeholder="5"
+            />
+            <span className="opacity-60">=</span>
+            <input
+              className="form-input"
+              value={c}
+              onChange={e => setC(e.target.value)}
+              placeholder="20"
+            />
+            <span className="opacity-60">:</span>
+            <span className="form-input flex items-center justify-center opacity-60">?</span>
+          </div>
+        </div>
+      )}
+
+      {mode === "splitTotal" && (
+        <div className="space-y-2">
+          <p className="text-sm opacity-60">e.g. hats to scarves is 5:8, and combined there are 88 - how many of each?</p>
+          <div className="flex items-center gap-2">
+            <input
+              className="form-input"
+              value={a}
+              onChange={e => setA(e.target.value)}
+              placeholder="First share (e.g., 5)"
+            />
+            <span className="opacity-60">:</span>
+            <input
+              className="form-input"
+              value={b}
+              onChange={e => setB(e.target.value)}
+              placeholder="Second share (e.g., 8)"
+            />
+          </div>
           <input
             className="form-input"
-            value={a}
-            onChange={e => setA(e.target.value)}
-            placeholder="A (e.g., 10)"
+            value={total}
+            onChange={e => setTotal(e.target.value)}
+            placeholder="Combined total (e.g., 88)"
           />
-          <input
-            className="form-input"
-            value={b}
-            onChange={e => setB(e.target.value)}
-            placeholder="B (e.g., 5)"
-          />
-          <input
-            className="form-input"
-            value={c}
-            onChange={e => setC(e.target.value)}
-            placeholder="C (e.g., 20)"
-          />
+        </div>
+      )}
+
+      {mode === "findOther" && (
+        <div className="space-y-2">
+          <p className="text-sm opacity-60">e.g. ties to scarves is 5:8, there are 8 ties - how many scarves?</p>
+          <div className="flex items-center gap-2">
+            <input
+              className="form-input"
+              value={a}
+              onChange={e => setA(e.target.value)}
+              placeholder="First share (e.g., 5)"
+            />
+            <span className="opacity-60">:</span>
+            <input
+              className="form-input"
+              value={b}
+              onChange={e => setB(e.target.value)}
+              placeholder="Second share (e.g., 8)"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              className="form-input"
+              value={knownIsA ? "a" : "b"}
+              onChange={e => setKnownIsA(e.target.value === "a")}
+            >
+              <option value="a">Known amount is the first share</option>
+              <option value="b">Known amount is the second share</option>
+            </select>
+            <input
+              className="form-input"
+              value={knownValue}
+              onChange={e => setKnownValue(e.target.value)}
+              placeholder="Known amount (e.g., 8)"
+            />
+          </div>
         </div>
       )}
 

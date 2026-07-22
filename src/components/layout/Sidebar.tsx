@@ -16,7 +16,9 @@ import {
   Gauge,
   Minimize2,
   Percent as PercentIcon,
-  Sigma
+  Sigma,
+  LineChart,
+  Maximize2
 } from "lucide-react"
 
 import type { ToolId } from "../../tools/types"
@@ -26,8 +28,7 @@ const items: { id: ToolId; label: string; icon: any }[] = [
   { id: "rounding", label: "Number Rounding", icon: ArrowLeftRight },
   { id: "unit-converter", label: "Unit Converter", icon: Ruler },
   { id: "fractions", label: "Fractions", icon: CircleDivide },
-  { id: "lcm", label: "LCM Calculator", icon: Hash },
-  { id: "gcf", label: "GCF Calculator", icon: Divide },
+  { id: "lcm-gcf", label: "LCM / GCF Calculator", icon: Hash },
   { id: "prime-factorization", label: "Prime Factorization", icon: GitBranch },
   { id: "list-factors", label: "List Factors", icon: List },
   { id: "prime-finder", label: "Prime Finder", icon: Search },
@@ -40,7 +41,9 @@ const items: { id: ToolId; label: string; icon: any }[] = [
   { id: "unit-rate", label: "Unit Rate", icon: Gauge },
   { id: "simplify", label: "Simplify Expression", icon: Minimize2 },
   { id: "percent", label: "Percent Calculator", icon: PercentIcon },
-  { id: "unit-calculator", label: "Unit Calculator", icon: Sigma }
+  { id: "unit-calculator", label: "Unit Calculator", icon: Sigma },
+  { id: "inequality-graph", label: "Inequality Graph", icon: LineChart },
+  { id: "scale", label: "Scale Calculator", icon: Maximize2 }
 ]
 
 interface Props {

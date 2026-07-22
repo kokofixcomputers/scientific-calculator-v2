@@ -1,5 +1,18 @@
 export function solveEquation(equation: string): string {
-  const cleaned = equation.replace(/\s+/g, '').replace(/\*/g, '*').replace(/×/g, '*')
+  // Convert mixed numbers ("1 1/3") to an improper fraction ("4/3") before any
+  // whitespace is stripped, otherwise "1 1/3" collapses into the wrong number "11/3"
+  const mixedNumbersConverted = equation.replace(/(\d+)\s+(\d+)\/(\d+)/g, (_, whole, num, den) => {
+    const w = parseInt(whole, 10)
+    const n = parseInt(num, 10)
+    const d = parseInt(den, 10)
+    return `${w * d + n}/${d}`
+  })
+
+  const cleaned = mixedNumbersConverted
+    .replace(/\s+/g, '')
+    .replace(/\*/g, '*')
+    .replace(/×/g, '*')
+    .replace(/[()]/g, '') // equations here are linear with no nested grouping, so "(2/3)a" is just "2/3a"
     .replace(/([a-zA-Z0-9.]+)%/g, '0.01*$1')
   const parts = cleaned.split('=')
   if (parts.length !== 2) return 'Invalid equation format'
@@ -110,10 +123,15 @@ function solveProportion(left: string, right: string, variable: string): string 
       return 'Error: Variable on both sides not supported for proportions'
     }
     
-    return `${variable} = ${solution}`
+    return `${variable} = ${cleanFloat(solution)}`
   } catch (e) {
     return 'Error solving proportion'
   }
+}
+
+// Strips IEEE-754 float dust (e.g. 3.4999999999999996) left over from chained division
+function cleanFloat(n: number): number {
+  return Number.isFinite(n) ? Number(n.toPrecision(12)) : n
 }
 
 function parseFraction(value: string): number | null {
@@ -122,7 +140,8 @@ function parseFraction(value: string): number | null {
     if (isNaN(num) || isNaN(denom) || denom === 0) return null
     return num / denom
   }
-  const num = parseFloat(value)
+  if (value === '') return null
+  const num = Number(value)
   return isNaN(num) ? null : num
 }
 
@@ -141,7 +160,7 @@ function trySolveFor(left: string, right: string, variable: string, allVars: str
     }
 
     const solution = -constant / varCoeff
-    return `${variable} = ${solution}`
+    return `${variable} = ${cleanFloat(solution)}`
   } catch (e) {
     return 'Error parsing equation'
   }
@@ -234,7 +253,20 @@ function evaluateTokens(tokens: string[], variable: string): { varCoeff: number;
 }
 
 function evaluateTerm(term: string, variable: string): { varCoeff: number; constant: number } | null {
-  let hasVar = term.includes(variable)
+  // A bare fraction coefficient optionally attached to the variable, e.g. "2/3a" or "3/4".
+  // Here "2/3a" means (2/3)*a, not 2/(3a), so this must be checked before the left-to-right
+  // */÷ chain below (which would otherwise treat "3a" as the number 3 and drop the variable).
+  const simpleFracMatch = term.match(/^(\d+\.?\d*)\/(\d+\.?\d*)([a-zA-Z]?)$/)
+  if (simpleFracMatch) {
+    const [, numStr, denomStr, v] = simpleFracMatch
+    const num = Number(numStr)
+    const denom = Number(denomStr)
+    if (isNaN(num) || isNaN(denom) || denom === 0) return null
+    if (v && v !== variable) return null
+    const coeff = num / denom
+    return v ? { varCoeff: coeff, constant: 0 } : { varCoeff: 0, constant: coeff }
+  }
+
   let value = 1
   let isVar = false
 
@@ -255,6 +287,15 @@ function evaluateTerm(term: string, variable: string): { varCoeff: number; const
         return null
       }
     } else {
+      const coeffVarMatch = part.match(/^(\d+\.?\d*)([a-zA-Z])$/)
+      if (coeffVarMatch && coeffVarMatch[2] === variable) {
+        if (op !== '*') return null // division by a variable term - not supported
+        const coeff = parseFraction(coeffVarMatch[1])
+        if (coeff === null) return null
+        value *= coeff
+        isVar = true
+        continue
+      }
       const num = parseFraction(part)
       if (num === null) return null
       value = op === '*' ? value * num : value / num

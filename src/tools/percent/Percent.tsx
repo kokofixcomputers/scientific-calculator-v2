@@ -10,8 +10,9 @@ import {
   percentBreakdown,
   type PercentBreakdownResult,
 } from "./calc"
+import { percentToMixed } from "../fractions/calc"
 
-type Mode = "percentOf" | "valueFromPercent" | "findWhole" | "percentChange" | "applyChange" | "breakdown"
+type Mode = "percentOf" | "valueFromPercent" | "findWhole" | "percentChange" | "applyChange" | "breakdown" | "percentToMixed"
 
 interface Row {
   label: string
@@ -70,6 +71,14 @@ export default function Percent() {
 
   function calculate() {
     const numA = Number(a)
+
+    if (mode === "percentToMixed") {
+      if (isNaN(numA)) return
+      const [w, n, d] = percentToMixed(numA)
+      setResult(n === 0 ? String(w) : `${w} ${n}/${d}`)
+      return
+    }
+
     const numB = Number(b)
     if (isNaN(numA) || isNaN(numB)) return
 
@@ -124,7 +133,12 @@ export default function Percent() {
         <option value="percentChange">Percent change from X to Y</option>
         <option value="applyChange">Increase/decrease X by Y%</option>
         <option value="breakdown">Breakdown: share of a total</option>
+        <option value="percentToMixed">Percent to mixed number</option>
       </select>
+
+      {mode === "percentToMixed" && (
+        <input className="form-input" value={a} onChange={e => setA(e.target.value)} placeholder="Percent (e.g., 156)" />
+      )}
 
       {mode === "percentOf" && (
         <div className="grid grid-cols-2 gap-4">

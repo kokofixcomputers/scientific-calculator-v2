@@ -8,8 +8,7 @@ import Calculator from "./tools/calculator/Calculator"
 import Rounding from "./tools/rounding/Rounding.tsx"
 import UnitConverter from "./tools/unit-converter/UnitConverter.tsx"
 import Fractions from "./tools/fractions/Fractions.tsx"
-import LCM from "./tools/math/LCM.tsx"
-import GCF from "./tools/math/GCF.tsx"
+import LcmGcf from "./tools/math/LcmGcf.tsx"
 import PrimeFactorization from "./tools/math/PrimeFactorization.tsx"
 import ListFactors from "./tools/math/ListFactors.tsx"
 import PrimeFinder from "./tools/math/PrimeFinder.tsx"
@@ -23,6 +22,8 @@ import UnitRate from "./tools/unitRate/UnitRate.tsx"
 import Simplify from "./tools/simplify/Simplify.tsx"
 import Percent from "./tools/percent/Percent.tsx"
 import UnitCalculator from "./tools/unitCalculator/UnitCalculator.tsx"
+import InequalityGraph from "./tools/inequalityGraph/InequalityGraph.tsx"
+import Scale from "./tools/scale/Scale.tsx"
 
 import type { ToolId } from "./tools/types"
 
@@ -61,8 +62,7 @@ export default function App() {
               {activeTool === "rounding" && <Rounding />}
               {activeTool === "unit-converter" && <UnitConverter />}
               {activeTool === "fractions" && <Fractions />}
-              {activeTool === "lcm" && <LCM />}
-              {activeTool === "gcf" && <GCF />}
+              {activeTool === "lcm-gcf" && <LcmGcf />}
               {activeTool === "prime-factorization" && <PrimeFactorization />}
               {activeTool === "list-factors" && <ListFactors />}
               {activeTool === "prime-finder" && <PrimeFinder />}
@@ -76,6 +76,8 @@ export default function App() {
               {activeTool === "simplify" && <Simplify />}
               {activeTool === "percent" && <Percent />}
               {activeTool === "unit-calculator" && <UnitCalculator />}
+              {activeTool === "inequality-graph" && <InequalityGraph />}
+              {activeTool === "scale" && <Scale />}
             </div>
           </div>
         </div>

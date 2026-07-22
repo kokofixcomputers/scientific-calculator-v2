@@ -30,6 +30,24 @@ export function ratioToPercent(a: number, b: number): number {
   return ratioToDecimal(a, b) * 100
 }
 
+// "Hats to scarves is 5:8, and combined there are 88" -> hats=440/13, scarves=704/13
+export function splitTotalByRatio(a: number, b: number, total: number): [number, number] {
+  const sum = a + b
+  if (sum === 0) return [NaN, NaN]
+  const unit = total / sum
+  return [a * unit, b * unit]
+}
+
+// "Ties to scarves is 5:8, there are 8 ties, how many scarves?" -> findOtherPart(5, 8, 8, true) -> 12.8
+export function findOtherPart(a: number, b: number, knownValue: number, knownIsA: boolean): number {
+  if (knownIsA) {
+    if (a === 0) return NaN
+    return (knownValue * b) / a
+  }
+  if (b === 0) return NaN
+  return (knownValue * a) / b
+}
+
 export function compareRatios(a1: number, b1: number, a2: number, b2: number): string {
   const r1 = ratioToDecimal(a1, b1)
   const r2 = ratioToDecimal(a2, b2)

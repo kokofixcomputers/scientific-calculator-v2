@@ -50,3 +50,18 @@ export function percentToMixed(percent: number): [number, number, number] {
   const [n, d] = percentToFraction(percent)
   return toMixedNumber(n, d)
 }
+
+// "12 is what fraction of 18?" -> simplify(12, 18) -> 2/3
+export function whatFractionOf(part: number, whole: number): [number, number] {
+  return simplifyFraction(part, whole)
+}
+
+// "What is 3/7 of 56?" -> (3/7) * 56 -> 24
+export function fractionOfNumber(n: number, d: number, whole: number): number {
+  return d === 0 ? NaN : (n / d) * whole
+}
+
+// "14 is 7/12 of what number?" -> 14 / (7/12) -> 24
+export function findWholeFromFraction(part: number, n: number, d: number): number {
+  return n === 0 ? NaN : (part * d) / n
+}

@@ -167,6 +167,42 @@ export default function Scale() {
         <>
           <p className="text-sm opacity-60">e.g. a map scale of 1 in : 500 yd</p>
 
+          <div className="flex gap-2">
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                // Eiffel keychain: scale 1cm : 66m, model height 5cm -> actual height
+                setMapValue("1")
+                setMapUnit("cm")
+                setActualValue("66")
+                setActualUnit("m")
+                setDirection("mapToActual")
+                setDistance("5")
+                const r = mapToActual(1, 66, 5)
+                setMapResult(isNaN(r) ? "Invalid scale" : `${Number(r.toFixed(2))} m`)
+              }}
+            >
+              Eiffel keychain: 5cm → height
+            </button>
+
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                // Eiffel keychain: scale 1cm : 66m, actual width 125m -> model width in cm
+                setMapValue("1")
+                setMapUnit("cm")
+                setActualValue("66")
+                setActualUnit("m")
+                setDirection("actualToMap")
+                setDistance("125")
+                const r = actualToMap(1, 66, 125)
+                setMapResult(isNaN(r) ? "Invalid scale" : `${Number(r.toFixed(2))} cm`)
+              }}
+            >
+              Eiffel width: 125m → model
+            </button>
+          </div>        
+
           <div className="flex items-center gap-2">
             <input className="form-input w-20" value={mapValue} onChange={e => setMapValue(e.target.value)} placeholder="1" type="number" />
             <input className="form-input w-20" value={mapUnit} onChange={e => setMapUnit(e.target.value)} placeholder="in" />

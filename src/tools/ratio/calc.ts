@@ -48,6 +48,12 @@ export function findOtherPart(a: number, b: number, knownValue: number, knownIsA
   return (knownValue * a) / b
 }
 
+// "The ratio is 4:9, and the 4-part is really 144 - what's the total?" -> 324
+export function ratioPartToTotal(ratioPart: number, ratioWhole: number, knownPartValue: number): number {
+  if (ratioPart === 0) return NaN
+  return knownPartValue * (ratioWhole / ratioPart)
+}
+
 export function compareRatios(a1: number, b1: number, a2: number, b2: number): string {
   const r1 = ratioToDecimal(a1, b1)
   const r2 = ratioToDecimal(a2, b2)

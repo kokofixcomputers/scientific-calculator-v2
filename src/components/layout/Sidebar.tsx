@@ -18,7 +18,8 @@ import {
   Percent as PercentIcon,
   Sigma,
   LineChart,
-  Maximize2
+  Maximize2,
+  Grid3x3
 } from "lucide-react"
 
 import type { ToolId } from "../../tools/types"
@@ -43,7 +44,8 @@ const items: { id: ToolId; label: string; icon: any }[] = [
   { id: "percent", label: "Percent Calculator", icon: PercentIcon },
   { id: "unit-calculator", label: "Unit Calculator", icon: Sigma },
   { id: "inequality-graph", label: "Inequality Graph", icon: LineChart },
-  { id: "scale", label: "Scale Calculator", icon: Maximize2 }
+  { id: "scale", label: "Scale Calculator", icon: Maximize2 },
+  { id: "line-grapher", label: "Line & Slope Tool", icon: Grid3x3 }
 ]
 
 interface Props {

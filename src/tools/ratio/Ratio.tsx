@@ -10,10 +10,11 @@ import {
   compareRatios,
   splitTotalByRatio,
   findOtherPart,
+  ratioPartToTotal,
 } from "./calc"
 
 export default function Ratio() {
-  const [mode, setMode] = useState<"simplify" | "missing" | "scale" | "decimal" | "percent" | "compare" | "splitTotal" | "findOther">("simplify")
+  const [mode, setMode] = useState<"simplify" | "missing" | "scale" | "decimal" | "percent" | "compare" | "splitTotal" | "findOther" | "ratioToTotal">("simplify")
   const [a, setA] = useState("")
   const [b, setB] = useState("")
   const [c, setC] = useState("")
@@ -22,6 +23,7 @@ export default function Ratio() {
   const [total, setTotal] = useState("")
   const [knownValue, setKnownValue] = useState("")
   const [knownIsA, setKnownIsA] = useState(true)
+  const [partValue, setPartValue] = useState("")
   const [result, setResult] = useState<string>("—")
 
   function calculate() {
@@ -32,6 +34,7 @@ export default function Ratio() {
     const numFactor = Number(factor)
     const numTotal = Number(total)
     const numKnownValue = Number(knownValue)
+    const numPartValue = Number(partValue)
 
     switch (mode) {
       case "simplify": {
@@ -56,6 +59,12 @@ export default function Ratio() {
         if (isNaN(numA) || isNaN(numB) || isNaN(numKnownValue)) return
         const other = findOtherPart(numA, numB, numKnownValue, knownIsA)
         setResult(String(other))
+        break
+      }
+      case "ratioToTotal": {
+        if (isNaN(numA) || isNaN(numB) || isNaN(numPartValue)) return
+        const r = ratioPartToTotal(numA, numB, numPartValue)
+        setResult(isNaN(r) ? "Invalid input" : String(r))
         break
       }
       case "scale": {
@@ -94,6 +103,7 @@ export default function Ratio() {
         <option value="missing">Solve a Proportion (A:B = C:?)</option>
         <option value="splitTotal">Split a Total by Ratio</option>
         <option value="findOther">Given One Part, Find the Other</option>
+        <option value="ratioToTotal">Ratio Part is a Real Number, Find the Total</option>
         <option value="scale">Scale Ratio</option>
         <option value="decimal">Ratio to Decimal</option>
         <option value="percent">Ratio to Percent</option>
@@ -208,6 +218,33 @@ export default function Ratio() {
               placeholder="Known amount (e.g., 8)"
             />
           </div>
+        </div>
+      )}
+
+      {mode === "ratioToTotal" && (
+        <div className="space-y-2">
+          <p className="text-sm opacity-60">e.g. the ratio is 4:9, and the 4-part is really 144 - what's the total?</p>
+          <div className="flex items-center gap-2">
+            <input
+              className="form-input"
+              value={a}
+              onChange={e => setA(e.target.value)}
+              placeholder="Ratio part (e.g., 4)"
+            />
+            <span className="opacity-60">:</span>
+            <input
+              className="form-input"
+              value={b}
+              onChange={e => setB(e.target.value)}
+              placeholder="Ratio total (e.g., 9)"
+            />
+          </div>
+          <input
+            className="form-input"
+            value={partValue}
+            onChange={e => setPartValue(e.target.value)}
+            placeholder="Real value of that part (e.g., 144)"
+          />
         </div>
       )}
 

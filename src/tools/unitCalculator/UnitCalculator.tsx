@@ -36,7 +36,10 @@ export default function UnitCalculator() {
     { op: "+", value: "", unit: Object.keys(groups.length)[0] },
     { op: "+", value: "", unit: Object.keys(groups.length)[0] },
   ])
-  const [outputUnit, setOutputUnit] = useState("")
+  const [outputUnits, setOutputUnits] = useState<string[]>([])
+  const [selectedIndices, setSelectedIndices] = useState<number[]>([])
+  const [autoChecked, setAutoChecked] = useState(true)
+  const [outputResults, setOutputResults] = useState<{ label: string; value: string }[]>([])
   const [result, setResult] = useState<string>("—")
   const { consumePendingValue } = useToolContext()
 
@@ -51,7 +54,34 @@ export default function UnitCalculator() {
     setCategory(next)
     const firstUnit = Object.keys(groups[next])[0]
     setRows(rows.map(row => ({ ...row, unit: firstUnit })))
-    setOutputUnit("")
+    setOutputUnits([])
+    setSelectedIndices([])
+    setAutoChecked(true)
+  }
+
+  function addOutputUnit() {
+    const newIndex = outputUnits.length
+    setOutputUnits([...outputUnits, units[0]])
+    setSelectedIndices([...selectedIndices, newIndex])
+  }
+
+  function removeOutputUnit(index: number) {
+    setOutputUnits(outputUnits.filter((_, i) => i !== index))
+    setSelectedIndices(
+      selectedIndices
+        .filter(i => i !== index)
+        .map(i => (i > index ? i - 1 : i))
+    )
+  }
+
+  function updateOutputUnit(index: number, value: string) {
+    setOutputUnits(outputUnits.map((u, i) => (i === index ? value : u)))
+  }
+
+  function toggleOutputUnit(index: number) {
+    setSelectedIndices(prev =>
+      prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
+    )
   }
 
   function addRow() {
@@ -79,7 +109,25 @@ export default function UnitCalculator() {
       expr += expr ? `${row.op}${term}` : term
     }
 
-    setResult(expr ? evaluateUnitExpression(expr, outputUnit || undefined) : "—")
+    if (!expr) {
+      setOutputResults([])
+      setResult("—")
+      return
+    }
+
+    const results: { label: string; value: string }[] = []
+    if (autoChecked) {
+      results.push({ label: "Auto (mixed units)", value: evaluateUnitExpression(expr) })
+    }
+    if (selectedIndices.length > 0) {
+      // All checked units merge into one carried breakdown (e.g. min + s -> "35min 35s"),
+      // not separate single-unit conversions
+      const chosenUnits = selectedIndices.map(i => outputUnits[i])
+      results.push({ label: chosenUnits.join(" + "), value: evaluateUnitExpression(expr, chosenUnits) })
+    }
+
+    setOutputResults(results)
+    setResult(results.map(r => r.value).join("  |  "))
   }
 
   return (
@@ -143,17 +191,54 @@ export default function UnitCalculator() {
         </button>
       </div>
 
-      <div className="flex items-center gap-3">
-        <span className="text-sm opacity-60 whitespace-nowrap">Output as</span>
-        <select
-          className="form-input"
-          value={outputUnit}
-          onChange={e => setOutputUnit(e.target.value)}
-        >
-          <option value="">Auto (mixed units)</option>
-          {units.map(u => <option key={u} value={u}>{u} only</option>)}
-        </select>
+      <div className="space-y-3">
+        <span className="text-sm opacity-60 whitespace-nowrap">Output as (select any number)</span>
+
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={autoChecked}
+            onChange={e => setAutoChecked(e.target.checked)}
+          />
+          <span className="text-sm">Auto (mixed units)</span>
+        </label>
+
+        {outputUnits.map((u, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={selectedIndices.includes(index)}
+              onChange={() => toggleOutputUnit(index)}
+            />
+            <select
+              className="form-input flex-1"
+              value={u}
+              onChange={e => updateOutputUnit(index, e.target.value)}
+            >
+              {units.map(uu => <option key={uu} value={uu}>{uu}</option>)}
+            </select>
+            <button className="btn-danger px-3" onClick={() => removeOutputUnit(index)}>
+              <X size={16} />
+            </button>
+          </div>
+        ))}
+
+        <button className="btn-secondary" onClick={addOutputUnit}>
+          <Plus size={16} className="mr-2" />
+          Add Output Unit
+        </button>
       </div>
+
+      {outputResults.length > 1 && (
+        <div className="space-y-2">
+          {outputResults.map((r, i) => (
+            <div key={i} className="flex items-center justify-between glass rounded-lg p-3">
+              <span className="font-medium">{r.label}</span>
+              <span className="font-mono">{r.value}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <ResultDisplay value={result} />
     </div>

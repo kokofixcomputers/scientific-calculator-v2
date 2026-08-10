@@ -24,6 +24,7 @@ import Percent from "./tools/percent/Percent.tsx"
 import UnitCalculator from "./tools/unitCalculator/UnitCalculator.tsx"
 import InequalityGraph from "./tools/inequalityGraph/InequalityGraph.tsx"
 import Scale from "./tools/scale/Scale.tsx"
+import LineGrapher from "./tools/lineGrapher/LineGrapher.tsx"
 
 import type { ToolId } from "./tools/types"
 
@@ -78,6 +79,7 @@ export default function App() {
               {activeTool === "unit-calculator" && <UnitCalculator />}
               {activeTool === "inequality-graph" && <InequalityGraph />}
               {activeTool === "scale" && <Scale />}
+              {activeTool === "line-grapher" && <LineGrapher />}
             </div>
           </div>
         </div>

@@ -243,12 +243,10 @@ function formatBreakdown(baseValue: number, group: string, unitsUsed: string[]):
   return sign + visible.map(p => `${p.value}${p.unit}`).join(" ")
 }
 
-// Rounds to 4 decimal places and strips any leftover float dust, e.g. 21.000000004 -> 21
-function formatUnitValue(n: number): number {
-  return cleanNumber(Math.round(n * 1e4) / 1e4)
-}
-
-export function evaluateUnitExpression(expression: string, outputUnit?: string): string {
+// outputUnits: leave empty/undefined for auto (derived from the units typed in the expression).
+// One unit forces a single-unit result (e.g. "36in"). Two or more merge into a carried
+// breakdown across exactly those units, same as "combine" does, e.g. ["min","s"] -> "35min 35s".
+export function evaluateUnitExpression(expression: string, outputUnits?: string[]): string {
   if (!expression.trim()) return "—"
 
   const tokens = tokenize(expression)
@@ -264,11 +262,15 @@ export function evaluateUnitExpression(expression: string, outputUnit?: string):
 
     const baseValue = result.value / groups[result.group as string][result.unit]
 
-    if (outputUnit) {
-      const info = findUnit(outputUnit)
-      if (!info) return `Unrecognized unit "${outputUnit}"`
-      if (info.group !== result.group) return `Cannot express the result in "${outputUnit}" - different unit category`
-      return `${formatUnitValue(baseValue * info.factor)}${info.unit}`
+    if (outputUnits && outputUnits.length > 0) {
+      const resolved: string[] = []
+      for (const raw of outputUnits) {
+        const info = findUnit(raw)
+        if (!info) return `Unrecognized unit "${raw}"`
+        if (info.group !== result.group) return `Cannot express the result in "${raw}" - different unit category`
+        resolved.push(info.unit)
+      }
+      return formatBreakdown(baseValue, result.group as string, resolved)
     }
 
     const unitsUsed = tokens

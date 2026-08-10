@@ -109,10 +109,41 @@ function formatEquation(slope: number, yIntercept: number): string {
   return `y = ${slopeTerm}${sign}`
 }
 
+// Parses a plain number or an "a/b" fraction, e.g. "3", "-1/2"
+function parseSimpleNumber(str: string): number | null {
+  const fracMatch = str.match(/^(-?\d+\.?\d*)\/(-?\d+\.?\d*)$/)
+  if (fracMatch) {
+    const num = Number(fracMatch[1])
+    const den = Number(fracMatch[2])
+    if (isNaN(num) || isNaN(den) || den === 0) return null
+    return num / den
+  }
+  const num = Number(str)
+  return isNaN(num) ? null : num
+}
+
 export function analyzeLine(input: string): LineInfo | { error: string } {
   const cleaned = input.replace(/\s+/g, '').replace(/×/g, '*').replace(/[()]/g, '')
+
+  // "k" is the constant of proportionality in direct variation (y = kx). Typing just "k = 3"
+  // is shorthand for that whole line - a line through the origin with slope 3.
+  const kDefinition = cleaned.match(/^k=(.+)$/i)
+  if (kDefinition) {
+    const kValue = parseSimpleNumber(kDefinition[1])
+    if (kValue === null) return { error: 'Could not parse the value of k' }
+    return lineFromSlopeIntercept(kValue, 0)
+  }
+
   const parts = cleaned.split('=')
   if (parts.length !== 2) return { error: 'Enter an equation with one "=", e.g. y = -x + 1' }
+
+  const otherLetters = Array.from(new Set((cleaned.match(/[a-zA-Z]/g) || []).filter(ch => ch !== 'x' && ch !== 'y')))
+  if (otherLetters.length > 0) {
+    if (otherLetters.length === 1 && otherLetters[0].toLowerCase() === 'k') {
+      return { error: 'k is the constant of proportionality (y = kx) - give it a value, e.g. "y = 3x" or just "k = 3"' }
+    }
+    return { error: `This tool only graphs equations in x and y - found "${otherLetters.join(', ')}". Try rewriting with x and/or y.` }
+  }
 
   const left = evaluateSide(parts[0])
   const right = evaluateSide(parts[1])

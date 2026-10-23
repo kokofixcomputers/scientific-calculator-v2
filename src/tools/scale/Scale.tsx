@@ -1,7 +1,7 @@
 import { useState } from "react"
 import ResultDisplay from "../../components/ResultDisplay"
 import { Plus, X } from "lucide-react"
-import { calculateScaleModel, mapToActual, actualToMap, type ScaleModelResult } from "./calc"
+import { calculateScaleModel, mapToActual, actualToMap, scaleFactorBetween, type ScaleModelResult } from "./calc"
 
 interface DimensionRow {
   label: string
@@ -10,7 +10,7 @@ interface DimensionRow {
 }
 
 export default function Scale() {
-  const [mode, setMode] = useState<"model" | "map">("model")
+  const [mode, setMode] = useState<"model" | "map" | "factor">("model")
 
   // Scale Model mode
   const [rows, setRows] = useState<DimensionRow[]>([
@@ -76,6 +76,19 @@ export default function Scale() {
     }
   }
 
+  // Scale Factor (Number to Number) mode
+  const [fromValue, setFromValue] = useState("")
+  const [toValue, setToValue] = useState("")
+  const [factorResult, setFactorResult] = useState<string>("—")
+
+  function calculateFactor() {
+    const from = Number(fromValue)
+    const to = Number(toValue)
+    if (isNaN(from) || isNaN(to)) return
+    const r = scaleFactorBetween(from, to)
+    setFactorResult(isNaN(r) ? "Invalid input" : String(r))
+  }
+
   return (
     <div className="card space-y-8 max-w-xl mx-auto">
       <div>
@@ -83,20 +96,11 @@ export default function Scale() {
         <span className="badge-secondary ui-orange">Models &amp; Maps</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          className={mode === "model" ? "btn-accent" : "btn-secondary"}
-          onClick={() => setMode("model")}
-        >
-          Scale Model
-        </button>
-        <button
-          className={mode === "map" ? "btn-accent" : "btn-secondary"}
-          onClick={() => setMode("map")}
-        >
-          Map / Drawing Scale
-        </button>
-      </div>
+      <select className="form-input" value={mode} onChange={e => setMode(e.target.value as "model" | "map" | "factor")}>
+        <option value="model">Scale Model</option>
+        <option value="map">Map / Drawing Scale</option>
+        <option value="factor">Scale Factor (Number to Number)</option>
+      </select>
 
       {mode === "model" && (
         <>
@@ -229,6 +233,25 @@ export default function Scale() {
           </button>
 
           <ResultDisplay value={mapResult} />
+        </>
+      )}
+
+      {mode === "factor" && (
+        <>
+          <p className="text-sm opacity-60">e.g. scale factor from 0.5 to 8</p>
+
+          <div className="flex items-center gap-2">
+            <span className="opacity-60 whitespace-nowrap">From</span>
+            <input className="form-input" value={fromValue} onChange={e => setFromValue(e.target.value)} placeholder="0.5" type="number" />
+            <span className="opacity-60 whitespace-nowrap">to</span>
+            <input className="form-input" value={toValue} onChange={e => setToValue(e.target.value)} placeholder="8" type="number" />
+          </div>
+
+          <button className="btn-accent w-full" onClick={calculateFactor}>
+            Calculate
+          </button>
+
+          <ResultDisplay value={factorResult} />
         </>
       )}
     </div>

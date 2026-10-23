@@ -45,3 +45,9 @@ export function actualToMap(mapScaleValue: number, actualScaleValue: number, act
   if (actualScaleValue === 0) return NaN
   return actualDistance * (mapScaleValue / actualScaleValue)
 }
+
+// "Scale factor from 0.5 to 8" -> 16 (i.e. what do you multiply 0.5 by to get 8)
+export function scaleFactorBetween(from: number, to: number): number {
+  if (from === 0) return NaN
+  return to / from
+}

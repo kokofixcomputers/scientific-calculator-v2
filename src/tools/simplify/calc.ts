@@ -24,17 +24,46 @@ interface Term {
   variable?: string
 }
 
-// Parses a signed token (e.g. "+5x", "-18") into a coefficient/variable pair
+// Parses a signed token (e.g. "+5x", "-18", "+5z*4") into a coefficient/variable pair.
+// A term may be a chain of factors joined by "*" - multiply the numeric ones together
+// and track at most one variable letter (this tool only simplifies linear expressions,
+// so "x*y" is unsupported and correctly fails to parse).
 function parseTerm(token: string): Term | null {
   const sign = token[0] === '-' ? -1 : 1
   const body = token.slice(1)
+  if (body === '') return null
 
-  const match = body.match(/^(\d+\.?\d*(?:\/\d+\.?\d*)?)?([a-zA-Z])?$/)
-  if (!match) return null
+  const factors = body.split('*')
+  let coeff = 1
+  let variable: string | undefined
+  let variableCount = 0
 
-  const [, coeffStr, variable] = match
-  const coeff = parseCoefficient(coeffStr ?? '')
-  if (coeff === null) return null
+  for (const factor of factors) {
+    if (factor === '') return null
+
+    if (/^[a-zA-Z]$/.test(factor)) {
+      // A second variable factor makes this nonlinear (degree 2+), even if it's the
+      // same letter (e.g. "z*z" is z², not z) - not representable by this linear tool
+      if (variableCount > 0) return null
+      variable = factor
+      variableCount++
+      continue
+    }
+
+    const match = factor.match(/^(\d+\.?\d*(?:\/\d+\.?\d*)?)([a-zA-Z])?$/)
+    if (!match) return null
+
+    const [, coeffStr, v] = match
+    const factorCoeff = parseCoefficient(coeffStr)
+    if (factorCoeff === null) return null
+    coeff *= factorCoeff
+
+    if (v) {
+      if (variableCount > 0) return null
+      variable = v
+      variableCount++
+    }
+  }
 
   return { coeff: sign * coeff, variable }
 }
@@ -100,7 +129,9 @@ function expandParens(expr: string): string | null {
 
 // Combines like terms in a linear expression, e.g. "12+5x-18-x" -> "4x - 6"
 export function simplifyExpression(expr: string): string {
-  const cleaned = expr.replace(/\s+/g, '').replace(/×/g, '*').replace(/\*/g, '')
+  // Keep "*" so parseTerm can multiply factor chains like "5z*4" -> 20z; only collapse it
+  // before "(" (e.g. "3*(x-2)" -> "3(x-2)") to match what expandParens expects
+  const cleaned = expr.replace(/\s+/g, '').replace(/×/g, '*').replace(/\*\(/g, '(')
   if (cleaned === '') return 'Enter an expression'
 
   const expanded = expandParens(cleaned)

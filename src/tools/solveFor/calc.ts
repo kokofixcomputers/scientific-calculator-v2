@@ -1,4 +1,4 @@
-export function solveEquation(equation: string): string {
+function cleanEquation(equation: string): string {
   // Convert mixed numbers ("1 1/3") to an improper fraction ("4/3") before any
   // whitespace is stripped, otherwise "1 1/3" collapses into the wrong number "11/3"
   const mixedNumbersConverted = equation.replace(/(\d+)\s+(\d+)\/(\d+)/g, (_, whole, num, den) => {
@@ -8,18 +8,30 @@ export function solveEquation(equation: string): string {
     return `${w * d + n}/${d}`
   })
 
-  const cleaned = mixedNumbersConverted
+  return mixedNumbersConverted
     .replace(/\s+/g, '')
     .replace(/\*/g, '*')
     .replace(/×/g, '*')
     .replace(/[()]/g, '') // equations here are linear with no nested grouping, so "(2/3)a" is just "2/3a"
     .replace(/([a-zA-Z0-9.]+)%/g, '0.01*$1')
+}
+
+// Lists the distinct variable letters in an equation, in first-seen order, so the UI can
+// offer a picker when there's more than one (e.g. "x, t" in "x + t = 10")
+export function extractVariables(equation: string): string[] {
+  const cleaned = cleanEquation(equation)
+  const matches = cleaned.match(/[a-zA-Z]/g)
+  return matches ? Array.from(new Set(matches)) : []
+}
+
+export function solveEquation(equation: string, forVariable?: string): string {
+  const cleaned = cleanEquation(equation)
   const parts = cleaned.split('=')
   if (parts.length !== 2) return 'Invalid equation format'
 
   const [left, right] = parts
   const variables = new Set<string>()
-  
+
   // Extract variables (single letters)
   const varRegex = /[a-zA-Z]/g
   ;[left, right].forEach(side => {
@@ -28,37 +40,45 @@ export function solveEquation(equation: string): string {
   })
 
   if (variables.size === 0) return 'No variables found'
-  if (variables.size > 1) {
-    const varArray = Array.from(variables)
-    // Try each variable
-    for (const v of varArray) {
-      const result = trySolveFor(left, right, v, varArray)
-      if (!result.startsWith('Error')) return result
-    }
-    return `Multiple variables detected: ${varArray.join(', ')}. Specify one to solve for.`
+
+  if (forVariable) {
+    if (!variables.has(forVariable)) return `"${forVariable}" does not appear in this equation`
+    return solveForSingleVariable(left, right, forVariable)
   }
 
-  const variable = Array.from(variables)[0]
-  
+  if (variables.size > 1) {
+    const varArray = Array.from(variables)
+    // No variable was specified - try each one and use whichever actually solves
+    for (const v of varArray) {
+      const result = trySolveFor(left, right, v)
+      if (!result.startsWith('Error') && !result.startsWith("Can't isolate")) return result
+    }
+    return `Multiple variables detected: ${varArray.join(', ')}. Select one to solve for.`
+  }
+
+  return solveForSingleVariable(left, right, Array.from(variables)[0])
+}
+
+function solveForSingleVariable(left: string, right: string, variable: string): string {
   // Check if this is a proportion equation (fraction = fraction with variable)
   // e.g., "115/100=1426/p"
   const leftFrac = left.match(/^(\d+\.?\d*\/\d+\.?\d*)$/)
   const rightFrac = right.match(/^(\d+\.?\d*\/\d+\.?\d*)$/)
-  
+
   if (leftFrac && rightFrac) {
     return solveProportion(left, right, variable)
   }
-  
+
   // Check if one side is a fraction and the other is a fraction with variable
   const leftFracWithVar = left.match(/^(\d+\.?\d*)\/([a-zA-Z])$/)
   const rightFracWithVar = right.match(/^(\d+\.?\d*)\/([a-zA-Z])$/)
-  
+
   if ((leftFrac && rightFracWithVar && rightFracWithVar[2] === variable) ||
       (rightFrac && leftFracWithVar && leftFracWithVar[2] === variable)) {
     return solveProportion(left, right, variable)
   }
-  
-  return trySolveFor(left, right, variable, [variable])
+
+  return trySolveFor(left, right, variable)
 }
 
 function solveProportion(left: string, right: string, variable: string): string {
@@ -145,17 +165,35 @@ function parseFraction(value: string): number | null {
   return isNaN(num) ? null : num
 }
 
-function trySolveFor(left: string, right: string, variable: string, allVars: string[]): string {
+// Coefficients are tracked per-letter (not just for the target variable) so that a term
+// belonging to another symbol - e.g. the "t" in "2x + 3t - 3t = 10" - can still cancel out
+// instead of aborting the whole parse the moment a non-target letter shows up.
+interface LinearExpr {
+  coeffs: Record<string, number>
+  constant: number
+}
+
+function trySolveFor(left: string, right: string, variable: string): string {
   try {
-    const leftVal = parseExpression(left, variable, allVars)
-    const rightVal = parseExpression(right, variable, allVars)
+    const leftVal = parseExpression(left)
+    const rightVal = parseExpression(right)
 
     if (leftVal === null || rightVal === null) return 'Error parsing equation'
 
-    const varCoeff = leftVal.varCoeff - rightVal.varCoeff
+    const letters = new Set([...Object.keys(leftVal.coeffs), ...Object.keys(rightVal.coeffs)])
     const constant = leftVal.constant - rightVal.constant
 
-    if (varCoeff === 0) {
+    for (const letter of letters) {
+      if (letter === variable) continue
+      const coeff = (leftVal.coeffs[letter] ?? 0) - (rightVal.coeffs[letter] ?? 0)
+      if (Math.abs(coeff) > 1e-9) {
+        return `Can't isolate "${variable}" - equation still depends on "${letter}"`
+      }
+    }
+
+    const varCoeff = (leftVal.coeffs[variable] ?? 0) - (rightVal.coeffs[variable] ?? 0)
+
+    if (Math.abs(varCoeff) < 1e-9) {
       return constant === 0 ? 'Infinite solutions' : 'No solution'
     }
 
@@ -166,18 +204,17 @@ function trySolveFor(left: string, right: string, variable: string, allVars: str
   }
 }
 
-function parseExpression(expr: string, variable: string, allVars: string[]): { varCoeff: number; constant: number } | null {
-  const tokens = tokenize(expr, variable, allVars)
-  return evaluateTokens(tokens, variable)
+function parseExpression(expr: string): LinearExpr | null {
+  return evaluateTokens(tokenize(expr))
 }
 
-function tokenize(expr: string, variable: string, allVars: string[]): string[] {
+function tokenize(expr: string): string[] {
   const tokens: string[] = []
   let current = ''
-  
+
   for (let i = 0; i < expr.length; i++) {
     const char = expr[i]
-    
+
     if (char === '+' || (char === '-' && i > 0)) {
       if (current) tokens.push(current)
       current = char
@@ -186,89 +223,74 @@ function tokenize(expr: string, variable: string, allVars: string[]): string[] {
     }
   }
   if (current) tokens.push(current)
-  
+
   return tokens.filter(t => t && t !== '+' && t !== '-').map(t => {
     if (!t.startsWith('+') && !t.startsWith('-')) return '+' + t
     return t
   })
 }
 
-function evaluateTokens(tokens: string[], variable: string): { varCoeff: number; constant: number } | null {
-  let varCoeff = 0
+function evaluateTokens(tokens: string[]): LinearExpr | null {
+  const coeffs: Record<string, number> = {}
   let constant = 0
 
   for (const token of tokens) {
     const sign = token[0] === '-' ? -1 : 1
     const term = token.slice(1)
+    if (!term) return null
 
     if (term.includes('*') || term.includes('/')) {
-      // Check if this is a fraction with variable in denominator (e.g., "1426/p")
-      const fracMatch = term.match(/^(\d+\.?\d*)\/([a-zA-Z])$/)
-      if (fracMatch && fracMatch[2] === variable) {
-        // This is like "1426/p" which equals 1426 * (1/p)
-        // For linear equations, we need to handle this as a coefficient
-        // But this makes it non-linear. Let's cross-multiply approach instead.
-        // Actually, we can treat this as: term = 1426/p
-        // When we have a = b/p, we can rewrite as ap = b
-        // So 1426/p contributes to the equation differently
-        // For now, let's return null for this case as it's not a standard linear form
-        return null
-      }
-      
-      const result = evaluateTerm(term, variable)
+      // A fraction with a letter in the denominator, e.g. "1426/p", isn't linear - unsupported
+      if (/^(\d+\.?\d*)\/([a-zA-Z])$/.test(term)) return null
+
+      const result = evaluateTerm(term)
       if (result === null) return null
-      
-      varCoeff += sign * result.varCoeff
+
+      for (const [letter, coeff] of Object.entries(result.coeffs)) {
+        coeffs[letter] = (coeffs[letter] ?? 0) + sign * coeff
+      }
       constant += sign * result.constant
-    } else if (term === variable) {
-      varCoeff += sign
+    } else if (/^[a-zA-Z]$/.test(term)) {
+      coeffs[term] = (coeffs[term] ?? 0) + sign
     } else {
-      // Try to parse as fraction first
       const fracValue = parseFraction(term)
       if (fracValue !== null) {
         constant += sign * fracValue
       } else {
-        // Handle coefficient with variable like "9t"
-        const match = term.match(/^(\d+\.?\d*\/\d+\.?\d*)([a-zA-Z])$/)
-        if (match && match[2] === variable) {
+        // Handle coefficient with variable like "9t" or "2/3t"
+        const fracVarMatch = term.match(/^(\d+\.?\d*\/\d+\.?\d*)([a-zA-Z])$/)
+        const decimalMatch = term.match(/^(\d+\.?\d*)([a-zA-Z])$/)
+        const match = fracVarMatch ?? decimalMatch
+        if (match) {
           const coeff = parseFraction(match[1])
-          if (coeff !== null) {
-            varCoeff += sign * coeff
-          } else {
-            return null
-          }
+          if (coeff === null) return null
+          coeffs[match[2]] = (coeffs[match[2]] ?? 0) + sign * coeff
         } else {
-          const decimalMatch = term.match(/^(\d+\.?\d*)([a-zA-Z])$/)
-          if (decimalMatch && decimalMatch[2] === variable) {
-            varCoeff += sign * parseFloat(decimalMatch[1])
-          } else {
-            return null
-          }
+          return null
         }
       }
     }
   }
 
-  return { varCoeff, constant }
+  return { coeffs, constant }
 }
 
-function evaluateTerm(term: string, variable: string): { varCoeff: number; constant: number } | null {
-  // A bare fraction coefficient optionally attached to the variable, e.g. "2/3a" or "3/4".
+function evaluateTerm(term: string): LinearExpr | null {
+  // A bare fraction coefficient optionally attached to a letter, e.g. "2/3a" or "3/4".
   // Here "2/3a" means (2/3)*a, not 2/(3a), so this must be checked before the left-to-right
-  // */÷ chain below (which would otherwise treat "3a" as the number 3 and drop the variable).
+  // */÷ chain below (which would otherwise treat "3a" as the number 3 and drop the letter).
   const simpleFracMatch = term.match(/^(\d+\.?\d*)\/(\d+\.?\d*)([a-zA-Z]?)$/)
   if (simpleFracMatch) {
     const [, numStr, denomStr, v] = simpleFracMatch
     const num = Number(numStr)
     const denom = Number(denomStr)
     if (isNaN(num) || isNaN(denom) || denom === 0) return null
-    if (v && v !== variable) return null
     const coeff = num / denom
-    return v ? { varCoeff: coeff, constant: 0 } : { varCoeff: 0, constant: coeff }
+    return v ? { coeffs: { [v]: coeff }, constant: 0 } : { coeffs: {}, constant: coeff }
   }
 
   let value = 1
-  let isVar = false
+  let letter: string | null = null
 
   // Split by * and /
   const parts = term.split(/([*\/])/)
@@ -280,27 +302,27 @@ function evaluateTerm(term: string, variable: string): { varCoeff: number; const
       continue
     }
 
-    if (part === variable) {
-      if (op === '*') isVar = true
-      else if (op === '/') {
-        // Division by variable - not supported for linear equations
-        return null
-      }
-    } else {
-      const coeffVarMatch = part.match(/^(\d+\.?\d*)([a-zA-Z])$/)
-      if (coeffVarMatch && coeffVarMatch[2] === variable) {
-        if (op !== '*') return null // division by a variable term - not supported
-        const coeff = parseFraction(coeffVarMatch[1])
-        if (coeff === null) return null
-        value *= coeff
-        isVar = true
-        continue
-      }
-      const num = parseFraction(part)
-      if (num === null) return null
-      value = op === '*' ? value * num : value / num
+    if (/^[a-zA-Z]$/.test(part)) {
+      if (op === '/') return null // division by a letter - not supported
+      if (letter !== null && letter !== part) return null // two different letters multiplied - not linear
+      letter = part
+      continue
     }
+
+    const coeffVarMatch = part.match(/^(\d+\.?\d*)([a-zA-Z])$/)
+    if (coeffVarMatch) {
+      if (op !== '*') return null // division by a variable term - not supported
+      const coeff = parseFraction(coeffVarMatch[1])
+      if (coeff === null) return null
+      if (letter !== null && letter !== coeffVarMatch[2]) return null
+      value *= coeff
+      letter = coeffVarMatch[2]
+      continue
+    }
+    const num = parseFraction(part)
+    if (num === null) return null
+    value = op === '*' ? value * num : value / num
   }
 
-  return isVar ? { varCoeff: value, constant: 0 } : { varCoeff: 0, constant: value }
+  return letter ? { coeffs: { [letter]: value }, constant: 0 } : { coeffs: {}, constant: value }
 }

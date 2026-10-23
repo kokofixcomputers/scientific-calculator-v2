@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react"
 import ResultDisplay from "../../components/ResultDisplay"
-import { solveEquation } from "./calc"
+import { solveEquation, extractVariables } from "./calc"
 import { useToolContext } from "../../contexts/ToolContext"
 
 export default function SolveFor() {
   const [input, setInput] = useState("")
   const [result, setResult] = useState<string>("—")
+  const [selectedVariable, setSelectedVariable] = useState("")
   const { consumePendingValue } = useToolContext()
 
   useEffect(() => {
@@ -13,9 +14,18 @@ export default function SolveFor() {
     if (pending) setInput(pending)
   }, [])
 
+  const variables = extractVariables(input)
+
+  useEffect(() => {
+    if (!variables.includes(selectedVariable)) {
+      setSelectedVariable(variables[0] ?? "")
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [variables.join(",")])
+
   function handleSolve() {
     if (!input.trim()) return
-    const solution = solveEquation(input)
+    const solution = solveEquation(input, variables.length > 1 ? selectedVariable : undefined)
     setResult(solution)
   }
 
@@ -33,6 +43,19 @@ export default function SolveFor() {
         placeholder="e.g. -10 + 10s = 60, 115/100 = 1426/p, 60 = x%*100"
         onKeyDown={(e) => e.key === 'Enter' && handleSolve()}
       />
+
+      {variables.length > 1 && (
+        <div className="flex items-center gap-3">
+          <span className="text-sm opacity-60 whitespace-nowrap">Solve for</span>
+          <select
+            className="form-input"
+            value={selectedVariable}
+            onChange={(e) => setSelectedVariable(e.target.value)}
+          >
+            {variables.map(v => <option key={v} value={v}>{v}</option>)}
+          </select>
+        </div>
+      )}
 
       <button className="btn-accent w-full" onClick={handleSolve}>
         Solve

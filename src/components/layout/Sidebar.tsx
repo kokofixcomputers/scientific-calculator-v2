@@ -19,7 +19,11 @@ import {
   Sigma,
   LineChart,
   Maximize2,
-  Grid3x3
+  Grid3x3,
+  Puzzle,
+  FunctionSquare,
+  Triangle,
+  Superscript
 } from "lucide-react"
 
 import type { ToolId } from "../../tools/types"
@@ -45,7 +49,11 @@ const items: { id: ToolId; label: string; icon: any }[] = [
   { id: "unit-calculator", label: "Unit Calculator", icon: Sigma },
   { id: "inequality-graph", label: "Inequality Graph", icon: LineChart },
   { id: "scale", label: "Scale Calculator", icon: Maximize2 },
-  { id: "line-grapher", label: "Line & Slope Tool", icon: Grid3x3 }
+  { id: "line-grapher", label: "Line & Slope Tool", icon: Grid3x3 },
+  { id: "number-finder", label: "Number Finder", icon: Puzzle },
+  { id: "function-calc", label: "Function Calculator", icon: FunctionSquare },
+  { id: "shapes", label: "Shapes Calculator", icon: Triangle },
+  { id: "polynomials", label: "Polynomials", icon: Superscript }
 ]
 
 interface Props {

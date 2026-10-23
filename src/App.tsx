@@ -25,6 +25,10 @@ import UnitCalculator from "./tools/unitCalculator/UnitCalculator.tsx"
 import InequalityGraph from "./tools/inequalityGraph/InequalityGraph.tsx"
 import Scale from "./tools/scale/Scale.tsx"
 import LineGrapher from "./tools/lineGrapher/LineGrapher.tsx"
+import NumberFinder from "./tools/numberFinder/NumberFinder.tsx"
+import FunctionCalc from "./tools/functionCalc/FunctionCalc.tsx"
+import Shapes from "./tools/shapes/Shapes.tsx"
+import Polynomials from "./tools/polynomials/Polynomials.tsx"
 
 import type { ToolId } from "./tools/types"
 
@@ -80,6 +84,10 @@ export default function App() {
               {activeTool === "inequality-graph" && <InequalityGraph />}
               {activeTool === "scale" && <Scale />}
               {activeTool === "line-grapher" && <LineGrapher />}
+              {activeTool === "number-finder" && <NumberFinder />}
+              {activeTool === "function-calc" && <FunctionCalc />}
+              {activeTool === "shapes" && <Shapes />}
+              {activeTool === "polynomials" && <Polynomials />}
             </div>
           </div>
         </div>

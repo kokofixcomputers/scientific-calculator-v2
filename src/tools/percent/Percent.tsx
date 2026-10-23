@@ -14,6 +14,37 @@ import { percentToMixed } from "../fractions/calc"
 
 type Mode = "percentOf" | "valueFromPercent" | "findWhole" | "percentChange" | "applyChange" | "breakdown" | "percentToMixed"
 
+// Accepts a plain number, a fraction ("3/4"), or a mixed number ("1 2/4"), e.g. for "20% of 1 2/4"
+function parseNumberOrFraction(input: string): number {
+  const trimmed = input.trim()
+  if (trimmed === "") return NaN
+
+  const mixedMatch = trimmed.match(/^(-?\d+)\s+(\d+)\/(\d+)$/)
+  if (mixedMatch) {
+    const whole = Number(mixedMatch[1])
+    const num = Number(mixedMatch[2])
+    const den = Number(mixedMatch[3])
+    if (den === 0) return NaN
+    const sign = whole < 0 ? -1 : 1
+    return whole + sign * (num / den)
+  }
+
+  const fracMatch = trimmed.match(/^(-?\d+\.?\d*)\/(-?\d+\.?\d*)$/)
+  if (fracMatch) {
+    const num = Number(fracMatch[1])
+    const den = Number(fracMatch[2])
+    if (isNaN(num) || isNaN(den) || den === 0) return NaN
+    return num / den
+  }
+
+  return Number(trimmed)
+}
+
+// Strips IEEE-754 float dust (e.g. 0.30000000000000004) left over from division/multiplication
+function cleanFloat(n: number): number {
+  return Number.isFinite(n) ? Number(n.toPrecision(12)) : n
+}
+
 interface Row {
   label: string
   value: string
@@ -70,7 +101,7 @@ export default function Percent() {
   }
 
   function calculate() {
-    const numA = Number(a)
+    const numA = parseNumberOrFraction(a)
 
     if (mode === "percentToMixed") {
       if (isNaN(numA)) return
@@ -79,7 +110,7 @@ export default function Percent() {
       return
     }
 
-    const numB = Number(b)
+    const numB = parseNumberOrFraction(b)
     if (isNaN(numA) || isNaN(numB)) return
 
     switch (mode) {
@@ -90,12 +121,12 @@ export default function Percent() {
       }
       case "valueFromPercent": {
         const r = valueFromPercent(numA, numB)
-        setResult(String(r))
+        setResult(String(cleanFloat(r)))
         break
       }
       case "findWhole": {
         const r = findWhole(numA, numB)
-        setResult(isNaN(r) ? "Invalid input" : String(r))
+        setResult(isNaN(r) ? "Invalid input" : String(cleanFloat(r)))
         break
       }
       case "percentChange": {
@@ -109,7 +140,7 @@ export default function Percent() {
       }
       case "applyChange": {
         const r = applyPercentChange(numA, numB, direction)
-        setResult(String(r))
+        setResult(String(cleanFloat(r)))
         break
       }
     }
@@ -150,7 +181,7 @@ export default function Percent() {
       {mode === "valueFromPercent" && (
         <div className="grid grid-cols-2 gap-4">
           <input className="form-input" value={a} onChange={e => setA(e.target.value)} placeholder="Percent (e.g., 45)" />
-          <input className="form-input" value={b} onChange={e => setB(e.target.value)} placeholder="Total (e.g., 120)" />
+          <input className="form-input" value={b} onChange={e => setB(e.target.value)} placeholder="Total (e.g., 120 or 1 2/4)" />
         </div>
       )}
 
